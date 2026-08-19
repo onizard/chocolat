@@ -351,20 +351,20 @@ const MOUV = {
     ]},
 
   tableInversee:{
-    nom:'Table inversée', vue:[-95,-82,185,110], sol:0, duree:5600,
+    nom:'Table inversée', vue:[-92,-78,180,105], sol:0, duree:5600,
     cles:[
-      {t:0,   label:'Assis, mains au sol derrière, genoux fléchis', p:P({face:-1, x:-10, y:-22,
+      {t:0,   label:'Assis, mains au sol derrière, bras verrouillés', p:P({face:-1, x:-10, y:-27,
         spine:[30,30,30], tete:5, ventre:.06,
-        brasP:[-103,-55], brasL:[-105,-53], jambeP:[159,-103,180], jambeL:[161,-101,180]})},
-      {t:.4,  label:'Monte le bassin par les fessiers, côtes basses', p:P({face:-1, x:-10, y:-44,
-        spine:[5,5,5], tete:-4, ventre:-.05,
-        brasP:[-88,-87], brasL:[-90,-85], jambeP:[191,-101,180], jambeL:[193,-99,180]})},
-      {t:.62, label:'Tronc et cuisses alignés — tiens 2 secondes', p:P({face:-1, x:-10, y:-44,
-        spine:[5,5,5], tete:-4, ventre:-.05,
-        brasP:[-88,-87], brasL:[-90,-85], jambeP:[191,-101,180], jambeL:[193,-99,180]})},
-      {t:1,   label:'Redescends lentement, sans t\'asseoir lourdement', p:P({face:-1, x:-10, y:-22,
+        brasP:[-90,-90], brasL:[-92,-88], jambeP:[166,-101,180], jambeL:[167,-101,178]})},
+      {t:.4,  label:'Monte le bassin par les fessiers, côtes basses', p:P({face:-1, x:-10, y:-45,
+        spine:[5,5,5], tete:-2, ventre:-.05,
+        brasP:[-90,-90], brasL:[-92,-88], jambeP:[193,-101,180], jambeL:[194,-101,178]})},
+      {t:.62, label:'Tronc et cuisses alignés — tiens 2 secondes', p:P({face:-1, x:-10, y:-45,
+        spine:[5,5,5], tete:-2, ventre:-.05,
+        brasP:[-90,-90], brasL:[-92,-88], jambeP:[193,-101,180], jambeL:[194,-101,178]})},
+      {t:1,   label:'Redescends lentement, sans t\'asseoir lourdement', p:P({face:-1, x:-10, y:-27,
         spine:[30,30,30], tete:5, ventre:.06,
-        brasP:[-103,-55], brasL:[-105,-53], jambeP:[159,-103,180], jambeL:[161,-101,180]})}
+        brasP:[-90,-90], brasL:[-92,-88], jambeP:[166,-101,180], jambeL:[167,-101,178]})}
     ]},
 
   /* ---------- erreurs ---------- */

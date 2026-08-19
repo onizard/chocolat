@@ -198,6 +198,13 @@ input[type=number],input[type=date],select{
 .sheet-in span{font-family:"Space Mono",monospace;font-size:14px;color:var(--encre2);min-width:48px}
 .sheet .cta{margin-bottom:8px}
 
+.ic-r{width:19px;height:19px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.rule .m{display:flex;align-items:center;justify-content:center;width:24px}
+.cle{color:var(--teal);font-weight:600}
+.cle-a{color:var(--jaune-fort);font-weight:600}
+.lien-danger{display:block;width:100%;text-align:center;margin-top:14px;font-size:12.5px;
+  color:var(--encre3);text-decoration:underline;text-underline-offset:3px;padding:6px}
+.lien-danger:active{color:var(--rouge)}
 .lien-infos{display:inline-block;margin-top:12px;font-size:12.5px;font-weight:600;color:var(--teal);
   border-bottom:1px solid var(--teal);padding:0 0 1px;line-height:1.2}
 .lien-infos::before{content:"ⓘ";margin-right:6px;font-weight:400}
@@ -275,6 +282,13 @@ input[type=number],input[type=date],select{
 .sheet-in span{font-family:"Space Mono",monospace;font-size:14px;color:var(--encre2);min-width:48px}
 .sheet .cta{margin-bottom:8px}
 
+.ic-r{width:19px;height:19px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.rule .m{display:flex;align-items:center;justify-content:center;width:24px}
+.cle{color:var(--teal);font-weight:600}
+.cle-a{color:var(--jaune-fort);font-weight:600}
+.lien-danger{display:block;width:100%;text-align:center;margin-top:14px;font-size:12.5px;
+  color:var(--encre3);text-decoration:underline;text-underline-offset:3px;padding:6px}
+.lien-danger:active{color:var(--rouge)}
 .lien-infos{display:inline-block;margin-top:12px;font-size:12.5px;font-weight:600;color:var(--teal);
   border-bottom:1px solid var(--teal);padding:0 0 1px;line-height:1.2}
 .lien-infos::before{content:"ⓘ";margin-right:6px;font-weight:400}
@@ -1001,9 +1015,10 @@ function vueProfil(){
     <div class="note" style="color:var(--rouge);background:var(--rouge-pale)">Consulte aussi en cas de : bosse ou douleur à l'aine ou au nombril à l'effort (hernie), ballonnement récent et persistant sans cause, douleur lombaire qui s'installe, tour de taille qui augmente à poids stable.</div>
   </div>
 
-  <div class="card flat">
-    <button class="cta ghost" id="btnInstall" data-act="install" style="display:${promptInstall?'block':'none'};margin-bottom:10px">Installer sur l'écran d'accueil</button>
-    <button class="cta danger" data-act="reset">Effacer toutes mes données</button>
+  <button class="cta" data-act="enregistrer" style="margin-top:4px">Enregistrer et voir ma semaine</button>
+  <div class="card flat" style="margin-top:12px">
+    <button class="cta ghost" id="btnInstall" style="display:${promptInstall?'block':'none'}">Installer sur l'écran d'accueil</button>
+    <button class="lien-danger" data-act="reset">Effacer toutes mes données</button>
   </div>
   <div style="text-align:center;font-size:11.5px;color:var(--encre3);padding:6px 20px 0;line-height:1.5">
     Ces calculs sont des estimations statistiques, pas un avis médical. En cas de pathologie, de grossesse récente, de traitement en cours ou de douleur persistante, parles-en à un médecin ou à un kinésithérapeute avant de commencer.
@@ -1126,34 +1141,31 @@ function vueSemaine(){
   <h2 class="sect-title">Astuces</h2>
   <div class="card">
     <div class="eyebrow" style="margin-bottom:4px">Le rythme de la journée</div>
-    <div class="rule ok"><div class="m">1</div><div class="tx"><b>Marche rapide à jeun — 20 à 30 min</b>
-      <small>Au réveil, avant le petit-déjeuner, allure où l'on peut encore parler. À jeun, l'insuline est basse et le corps puise davantage dans les graisses <b>pendant</b> l'effort. Attention toutefois : sur 24 heures, c'est le bilan calorique qui décide de ce que tu perds, pas le moment de la séance. Le vrai bénéfice est pratique — c'est facile, ça ne pèse pas sur l'estomac, et ça protège les 10 000 pas quand la journée dérape.</small></div></div>
-    <div class="rule ok"><div class="m">2</div><div class="tx"><b>Café noir 30 min avant la marche</b>
-      <small>1 à 3 mg de caféine par kg, soit 1 à 2 tasses pour toi. Effort perçu plus faible, oxydation des graisses légèrement augmentée. Sans sucre ni lait : les calories ajoutées annulent l'intérêt. Si le café à jeun te brûle l'estomac, bois un grand verre d'eau d'abord.</small></div></div>
-    <div class="rule ok"><div class="m">3</div><div class="tx"><b>Thé vert l'après-midi, café coupé après 14 h</b>
-      <small>La demi-vie de la caféine est de 5 à 6 heures : un café à 16 h en laisse encore la moitié active à 22 h, et le sommeil court est ce qui fait le plus dérailler un déficit. Le thé vert de 16 h occupe le geste du grignotage pour presque zéro calorie.</small></div></div>
-    <div class="rule ok"><div class="m">4</div><div class="tx"><b>Thé et café à distance des repas riches en fer</b>
-      <small>Les tanins réduisent l'absorption du fer végétal. Laisse une heure autour des repas à base de lentilles, épinards ou tofu.</small></div></div>
+    <div class="rule ok"><div class="m">${ico('marche')}</div><div class="tx"><b class="cle">Marche à jeun, 20 à 30 min</b>
+      <small>Au réveil, allure où l'on peut parler. Le bénéfice est surtout pratique : ça protège les ${c.pas.toLocaleString('fr-FR')} pas quand la journée dérape.</small></div></div>
+    <div class="rule ok"><div class="m">${ico('tasse')}</div><div class="tx"><b class="cle">Café noir 30 min avant</b>
+      <small>Effort perçu plus faible. <b>Sans sucre ni lait.</b></small></div></div>
+    <div class="rule ok"><div class="m">${ico('feuille')}</div><div class="tx"><b class="cle">Thé vert l'après-midi</b>
+      <small>Et <b class="cle-a">plus de café après 14 h</b> : la caféine met 5 à 6 heures à s'éliminer, et le sommeil court fait dérailler un déficit.</small></div></div>
+    <div class="rule ok"><div class="m">${ico('horloge')}</div><div class="tx"><b class="cle">Thé et café loin des repas riches en fer</b>
+      <small>Une heure d'écart avec lentilles, épinards, tofu.</small></div></div>
   </div>
 
   <div class="card">
     <div class="eyebrow" style="margin-bottom:10px">Envies sucrées et grignotage</div>
-    <div class="note" style="margin:0 0 10px">D'abord distinguer les deux. <b>La faim accepte n'importe quel aliment</b> — si une pomme ou des œufs ne te tentent pas, ce n'est pas de la faim, c'est une envie. Une envie dure 10 à 20 minutes et redescend seule.</div>
-    <div class="rule ok"><div class="m">✓</div><div class="tx">Ne pas en avoir chez soi<small>Le contrôle de l'environnement bat la volonté à tous les coups. C'est la seule décision à prendre, et elle se prend au supermarché, pas à 22 h devant le placard.</small></div></div>
-    <div class="rule ok"><div class="m">✓</div><div class="tx">Attendre 10 minutes, un grand verre d'eau à la main<small>Le temps que l'envie retombe. Si après 10 minutes tu la veux toujours, prends-en une portion normale, assis, sans écran.</small></div></div>
-    <div class="rule ok"><div class="m">✓</div><div class="tx">Marcher 10 minutes ou se brosser les dents<small>Deux gestes banals qui coupent une envie de façon fiable. Le second change le goût en bouche et clôt symboliquement le repas.</small></div></div>
-    <div class="rule ok"><div class="m">✓</div><div class="tx">${c.prot} g de protéines répartis sur la journée<small>Le déterminant numéro un de la satiété. La plupart des craquages du soir viennent d'un déjeuner trop pauvre en protéines.</small></div></div>
-    <div class="rule ok"><div class="m">✓</div><div class="tx">Dormir 7 à 8 heures<small>Une seule nuit courte augmente nettement l'appétit et oriente les envies vers le sucré. C'est un levier plus puissant que n'importe quelle astuce de volonté.</small></div></div>
-    <div class="rule ok"><div class="m">✓</div><div class="tx">Une alternative volumineuse plutôt qu'un interdit<small>Yaourt grec et fruits rouges avec un peu de cannelle, un carré de chocolat noir à 85 %, un thé. Le volume et l'amertume rassasient là où un « non » sec fait tenir trois jours puis craquer.</small></div></div>
-    <div class="rule"><div class="m">✕</div><div class="tx">Les produits « sans sucre » aux polyols<small>Sorbitol, maltitol, xylitol : ils entretiennent le goût du sucré et ballonnent presque tout le monde. Exactement ce qu'on cherche à éviter ici.</small></div></div>
+    <div class="note" style="margin:0 0 12px"><b class="cle">La faim accepte n'importe quel aliment.</b> Si une pomme ne te tente pas, c'est une envie — et une envie retombe en 10 à 20 minutes.</div>
+    <div class="rule ok"><div class="m">${ico('panier')}</div><div class="tx"><b>Ne pas en avoir chez soi</b><small>La décision se prend au supermarché, pas à 22 h.</small></div></div>
+    <div class="rule ok"><div class="m">${ico('goutte')}</div><div class="tx"><b>Attendre 10 minutes, un verre d'eau</b><small>Le temps que ça retombe.</small></div></div>
+    <div class="rule ok"><div class="m">${ico('eclat')}</div><div class="tx"><b>Marcher 10 min ou se brosser les dents</b><small>Deux gestes qui coupent une envie de façon fiable.</small></div></div>
+    <div class="rule ok"><div class="m">${ico('assiette')}</div><div class="tx"><b class="cle">${c.prot} g de protéines</b><small>Le déterminant numéro un de la satiété. Les craquages du soir viennent d'un déjeuner trop pauvre.</small></div></div>
+    <div class="rule ok"><div class="m">${ico('lune')}</div><div class="tx"><b class="cle">7 à 8 h de sommeil</b><small>Une nuit courte oriente les envies vers le sucré. Plus puissant que n'importe quelle astuce de volonté.</small></div></div>
+    <div class="rule"><div class="m">${ico('interdit','var(--rouge)')}</div><div class="tx"><b>Produits « sans sucre » aux polyols</b><small>Sorbitol, maltitol, xylitol : ils ballonnent et entretiennent le goût du sucré.</small></div></div>
   </div>
 
   <div class="card">
     <div class="eyebrow">Tous les jours, sans exception</div>
-    <div style="margin-top:8px;font-size:14px;line-height:1.55">
-      <b>${c.pas.toLocaleString('fr-FR')} pas.</b> L'activité non-sportive dépense souvent plus que les séances, et elle chute toute seule en déficit. C'est le paramètre à protéger consciemment.<br><br>
-      <b>Vacuum, 5 × 12 s.</b> À jeun. C'est ce qui resserre la sangle et améliore le tonus de repos du ventre.
-    </div>
+    <div class="rule ok" style="margin-top:4px"><div class="m">${ico('marche')}</div><div class="tx"><b class="cle">${c.pas.toLocaleString('fr-FR')} pas</b><small>L'activité non-sportive dépense souvent plus que les séances — et elle chute toute seule en déficit.</small></div></div>
+    <div class="rule ok"><div class="m">${ico('goutte')}</div><div class="tx"><b class="cle">Vacuum, 5 × 12 s</b><small>À jeun. C'est ce qui resserre la sangle abdominale.</small></div></div>
   </div>`;
 }
 
@@ -1394,6 +1406,55 @@ function spark(vals,color){
     <text x="${pad}" y="${H-2}" font-family="Space Mono, monospace" font-size="9" fill="#7D8FA0">${min.toFixed(1)}</text>
     <text x="${W-pad}" y="12" text-anchor="end" font-family="Space Mono, monospace" font-size="9" fill="#7D8FA0">${max.toFixed(1)}</text>
   </svg>`;
+}
+
+/* ---------- pictogrammes ---------- */
+const ICO = {
+  marche:  '<circle cx="14" cy="4.5" r="2"/><path d="M10 21l2.5-6.5L9 11l1-4 3.5 2.5L16 11"/><path d="M12.5 14.5L16 17l1.5 4"/>',
+  tasse:   '<path d="M4 8h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 9h2a2.5 2.5 0 0 1 0 5h-2"/><path d="M8 2.5v2M12 2.5v2"/>',
+  feuille: '<path d="M20 4C9 5 4 10 4 17c7 1 15-4 16-13z"/><path d="M4.5 19.5L12 12"/>',
+  horloge: '<circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/>',
+  goutte:  '<path d="M12 3s6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 6-10 6-10z"/>',
+  lune:    '<path d="M20 14A8 8 0 1 1 10 4a7 7 0 0 0 10 10z"/>',
+  panier:  '<path d="M5 8h14l-1.2 11H6.2z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+  assiette:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/>',
+  eclat:   '<path d="M12 4l1.7 4.7L18 10l-4.3 1.3L12 16l-1.7-4.7L6 10l4.3-1.3z"/>',
+  interdit:'<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5L17.5 6.5"/>'
+};
+const ico = (n,c) => `<svg class="ic-r" viewBox="0 0 24 24" style="stroke:${c||'var(--teal)'}">${ICO[n]}</svg>`;
+
+/* ---------- confirmation d'effacement ---------- */
+function demandeEffacement(){
+  const el = document.createElement('div');
+  el.className = 'sheet-ov';
+  el.innerHTML = `
+    <div class="sheet">
+      <div class="eyebrow" style="color:var(--rouge)">Action définitive</div>
+      <div class="sheet-nm">Tout effacer ?</div>
+      <div style="font-size:14px;line-height:1.5;color:var(--encre2);margin-bottom:16px">
+        Profil, disponibilités, inventaire, repas validés et photos de suivi seront perdus.
+        Rien n'est récupérable.
+      </div>
+      <button class="cta danger" data-sh="oui">Oui, tout effacer</button>
+      <button class="cta ghost" data-sh="non">Annuler</button>
+    </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', (ev)=>{
+    const b = ev.target.closest('[data-sh]');
+    if(!b){ if(ev.target === el) el.remove(); return; }
+    const oui = b.dataset.sh === 'oui';
+    el.remove();
+    if(!oui) return;
+    (async ()=>{
+      await Store.del(CLE.profil);
+      await Store.del(CLE.journal);
+      P = JSON.parse(JSON.stringify(defaultProfil));
+      journal = [];
+      onboarding = true; tab = 'semaine';
+      render();
+      toast('Données effacées');
+    })();
+  });
 }
 
 /* ---------- saisie du poids acheté ----------
@@ -2047,13 +2108,10 @@ document.addEventListener('click', async (ev)=>{
     if(!isNaN(p)) P.poids=p;
     await save(); render(); toast('Mesure enregistrée'); return;
   }
-  if(a==='reset'){
-    if(confirm('Effacer le profil et tout l\'historique ? Cette action est définitive.')){
-      await Store.del(CLE.profil); await Store.del(CLE.journal);
-      P=JSON.parse(JSON.stringify(defaultProfil)); journal=[]; onboarding=true; tab='semaine'; render();
-    }
-    return;
+  if(a==='enregistrer'){
+    await save(); tab='semaine'; render(true); toast('Profil enregistré'); return;
   }
+  if(a==='reset'){ demandeEffacement(); return; }
 });
 
 // redimensionne et compresse avant stockage : une photo brute ferait plusieurs Mo
