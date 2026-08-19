@@ -334,20 +334,20 @@ const MOUV = {
     ]},
 
   psoas:{
-    nom:'Étirement du psoas', vue:[-110,-105,225,175], sol:38, duree:5400,
+    nom:'Étirement du psoas', vue:[-105,-105,220,175], sol:38, duree:6000,
     cles:[
-      {t:0,   label:'Fente, genou arrière au sol', p:P({x:0, y:0, ventre:.12,
+      {t:0,   label:'Chevalier servant, genou arrière au sol', p:P({x:-20, y:-1, ventre:.12,
         spine:[88,88,88], tete:88,
-        brasP:[-88,-88], brasL:[-86,-86], jambeP:[0,-95,-10], jambeL:[-90,180,160]})},
-      {t:.42, label:'Rentre le bassin sous toi (rétroversion)', p:P({x:0, y:0, ventre:-.24,
+        brasP:[-88,-88], brasL:[-86,-86], jambeP:[-3,-90,0], jambeL:[-90,180,160]})},
+      {t:.38, label:'Rentre le ventre, puis avance le bassin', p:P({x:-6.7, y:1.3, ventre:-.26,
         spine:[95,93,91], tete:91,
-        brasP:[-88,-88], brasL:[-86,-86], jambeP:[0,-95,-10], jambeL:[-90,180,160]})},
-      {t:.72, label:'C\'est là que l\'étirement se fait sentir', p:P({x:0, y:0, ventre:-.28,
+        brasP:[88,88], brasL:[-86,-86], jambeP:[-3,-111,0], jambeL:[-110,180,160]})},
+      {t:.72, label:'Cuisses ouvertes à plus de 90° — 45 secondes', p:P({x:-5, y:1.6, ventre:-.3,
         spine:[97,95,92], tete:92,
-        brasP:[-88,-88], brasL:[-86,-86], jambeP:[0,-95,-10], jambeL:[-90,180,160]})},
-      {t:1,   label:'Fente, genou arrière au sol', p:P({x:0, y:0, ventre:.12,
+        brasP:[89,89], brasL:[-86,-86], jambeP:[-3,-113,0], jambeL:[-113,180,160]})},
+      {t:1,   label:'Chevalier servant, genou arrière au sol', p:P({x:-20, y:-1, ventre:.12,
         spine:[88,88,88], tete:88,
-        brasP:[-88,-88], brasL:[-86,-86], jambeP:[0,-95,-10], jambeL:[-90,180,160]})}
+        brasP:[-88,-88], brasL:[-86,-86], jambeP:[-3,-90,0], jambeL:[-90,180,160]})}
     ]},
 
   tableInversee:{
