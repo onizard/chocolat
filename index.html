@@ -29,6 +29,7 @@
   --rouge:#A93B2C;
   --rouge-pale:#F7E4E0;
   --trait:#CBD5DC;
+  --bleu-eau:#2E7FA8; --bleu-pale:#E2EEF5;
   --vert:#DDEEDA; --vert-fort:#3E7D4A;
   --jaune:#F3E2AF; --jaune-fort:#9C7412;
   --r:14px;
@@ -166,6 +167,14 @@ input[type=number],input[type=date],select{
   color:var(--encre3);margin:10px 0 2px}
 .etape .repas{border-top:none;padding-top:4px}
 
+.etape.eau{border-left-color:var(--trait)}
+.etape.eau::before{border-color:var(--bleu-eau);background:#fff}
+.etape.eau .etape-h{padding:9px 0 3px}
+.etape.eau .etape-h .q{color:var(--bleu-eau);flex:1}
+.etape.eau .verres{font-family:"Space Mono",monospace;font-size:10.5px;color:var(--bleu-eau);letter-spacing:.06em}
+.eau-total{display:flex;align-items:center;gap:8px;background:var(--bleu-pale);border-radius:10px;
+  padding:9px 12px;font-size:13px;color:var(--encre2);margin-bottom:6px}
+.eau-total b{color:var(--bleu-eau)}
 .etape.repas-etape > .repas, .etape.repas-etape > .repas.off{
   background:var(--vert);border-radius:10px;padding:11px 12px;margin-bottom:2px}
 .etape.repas-etape::before{border-color:var(--vert-fort);background:var(--vert-fort)}
@@ -1049,6 +1058,31 @@ function vueProfil(){
   </div>`;
 }
 
+// Répartit la cible hydrique en verres de 250 ml sur des moments fixes.
+// Rien après 20 h : boire tard fragmente le sommeil, et le sommeil pèse
+// plus lourd sur un déficit que le litre supplémentaire.
+const VERRE = 250;
+function hydratation(litres, creneau){
+  const verres = Math.max(6, Math.round(litres*1000/VERRE));
+  const pts = [
+    {min:385, t:'6 h 25',  q:'Au réveil',                n:1},
+    {min:475, t:'7 h 55',  q:'Avant le petit-déjeuner',  n:1},
+    {min:630, t:'10 h 30', q:'Milieu de matinée',        n:1},
+    {min:780, t:'13 h 00', q:'Avant le déjeuner',        n:1},
+    {min:900, t:'15 h 00', q:'Milieu d\'après-midi',     n:1},
+    {min:988, t:'16 h 28', q:'Avec la collation',        n:1},
+    {min:1080,t:'18 h 00', q:'Fin d\'après-midi',        n:1},
+    {min:1200,t:'20 h 00', q:'Avant le dîner',           n:1}
+  ];
+  const H = {matin:{min:415,t:'6 h 55'}, midi:{min:745,t:'12 h 25'}, soir:{min:1165,t:'19 h 25'}};
+  if(creneau && H[creneau]) pts.push({...H[creneau], q:'Autour de la séance', n:1});
+  pts.sort((a,b)=>a.min-b.min);
+  let reste = verres - pts.reduce((s,p)=>s+p.n, 0);
+  const ordre = [0,3,5,2,7,1,4,6];
+  for(let i=0; reste>0; i++, reste--) pts[ordre[i%ordre.length] % pts.length].n++;
+  return pts;
+}
+
 function vueSemaine(){
   const c = calculs(P);
   const ph = phase();
@@ -1088,15 +1122,15 @@ function vueSemaine(){
 
     // déroulé chronologique de la journée
     const seance = d.blocs.length ? {type:'seance'} : null;
-    const H = {matin:'7 h 00', midi:'12 h 30', soir:'19 h 30'};
-    const seq = [{t:'6 h 30', type:'marche'}];
-    if(seance && d.creneau==='matin') seq.push({t:H.matin, type:'seance'});
-    seq.push({t:'8 h 00', type:'repas', k:'pdj'});
-    if(seance && d.creneau==='midi') seq.push({t:H.midi, type:'seance'});
-    seq.push({t:'13 h 15', type:'repas', k:'dej'});
-    seq.push({t:'16 h 30', type:'repas', k:'col'});
-    if(seance && d.creneau==='soir') seq.push({t:H.soir, type:'seance'});
-    seq.push({t:'20 h 30', type:'repas', k:'din'});
+    const H = {matin:{t:'7 h 00',min:420}, midi:{t:'12 h 30',min:750}, soir:{t:'19 h 30',min:1170}};
+    const seq = [{min:390, t:'6 h 30', type:'marche'}];
+    if(seance) seq.push({...H[d.creneau], type:'seance'});
+    seq.push({min:480,  t:'8 h 00',  type:'repas', k:'pdj'});
+    seq.push({min:795,  t:'13 h 15', type:'repas', k:'dej'});
+    seq.push({min:990,  t:'16 h 30', type:'repas', k:'col'});
+    seq.push({min:1230, t:'20 h 30', type:'repas', k:'din'});
+    hydratation(+c.eau, seance ? d.creneau : null).forEach(p=>seq.push({...p, type:'eau'}));
+    seq.sort((a,b)=>a.min-b.min);
 
     const blocSeance = () => `
       <div class="bloc-phys">
@@ -1134,6 +1168,7 @@ function vueSemaine(){
         <div class="caret"></div>
       </button>
       ${open?`<div class="sess-body">
+        <div class="eau-total">${ico('goutte','var(--bleu-eau)')} <b>${c.eau} L</b> · ${hydratation(+c.eau, null).reduce((s,p)=>s+p.n,0)} verres de ${VERRE} ml, répartis ci-dessous</div>
         ${j.nbJeune?`<div class="note" style="margin-top:0">${j.nbJeune} repas jeûné${j.nbJeune>1?'s':''} : calories reportées sur les autres, pour tous les jours.</div>`:''}
         ${j.manque>120 && j.tot>0?`<div class="note" style="background:var(--ambre-pale)"><b>Il manque ${Math.round(j.manque)} kcal.</b> Les repas restants ne peuvent pas absorber tout le report sans devenir irréalistes.</div>`:''}
         ${j.tot>0 && j.tot<c.plancher?`<div class="note" style="background:var(--rouge-pale)">Le total descend sous le plancher de ${c.plancher.toLocaleString('fr-FR')} kcal calculé pour toi. Un déficit plus creux fait perdre du muscle, pas plus de graisse.</div>`:''}
@@ -1142,6 +1177,11 @@ function vueSemaine(){
             <div class="etape marche">
               <div class="etape-h"><span class="h">${e.t}</span><span class="q">Marche rapide à jeun</span></div>
               <div class="bloc-phys"><div class="ex"><div class="nm">Avant le petit-déjeuner<div class="tip">Allure conversationnelle. Un café noir 30 minutes avant si tu veux.${d.creneau==='matin'&&d.blocs.length?' Enchaîne ensuite sur la séance.':''}</div></div><div class="sr">20–30 min</div></div></div>
+            </div>`;
+          if(e.type==='eau') return `
+            <div class="etape eau">
+              <div class="etape-h"><span class="h">${e.t}</span><span class="q">${e.q}</span>
+                <span class="verres">${'●'.repeat(e.n)} ${e.n*VERRE} ml</span></div>
             </div>`;
           if(e.type==='seance') return `
             <div class="etape seance">
