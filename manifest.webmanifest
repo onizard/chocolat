@@ -1,0 +1,18 @@
+{
+  "name": "Chocolat — programme ventre plat",
+  "short_name": "Chocolat",
+  "description": "Programme personnalisé de 12 semaines : séances calées sur tes disponibilités, repas à ta cible calorique, suivi par photos et inventaire des courses.",
+  "lang": "fr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#16283C",
+  "theme_color": "#16283C",
+  "categories": ["health", "fitness", "lifestyle"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16283C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Chocolat — programme ventre plat</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --encre:#16283C;
+  --encre2:#41566C;
+  --encre3:#7D8FA0;
+  --brume:#E7ECEF;
+  --surface:#FFFFFF;
+  --sable:#F3F1EB;
+  --teal:#1C6E68;
+  --teal-pale:#DCEBE8;
+  --ambre:#E0A33C;
+  --ambre-pale:#FAEFD8;
+  --rouge:#A93B2C;
+  --rouge-pale:#F7E4E0;
+  --trait:#CBD5DC;
+  --vert:#DDEEDA; --vert-fort:#3E7D4A;
+  --jaune:#F3E2AF; --jaune-fort:#9C7412;
+  --r:14px;
+  --nav-h:64px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--brume);
+  color:var(--encre);
+  font-family:"Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:15px;line-height:1.5;
+  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",sans-serif;font-weight:800;letter-spacing:-.02em;margin:0}
+.mono{font-family:"Space Mono",ui-monospace,monospace}
+.eyebrow{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--encre3)}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font-family:inherit;font-size:16px;color:var(--encre)}
+:focus-visible{outline:2.5px solid var(--ambre);outline-offset:2px;border-radius:4px}
+
+/* ---------- SIGNATURE : le ruban métreur ---------- */
+.ruban{
+  position:sticky;top:0;z-index:40;
+  background:var(--encre);color:#fff;
+  padding:calc(14px + env(safe-area-inset-top)) 18px 0;
+}
+.ruban-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.ruban-head .t{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:17px;letter-spacing:-.01em}
+.ruban-head .s{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.14em;color:#8FA6BB;text-transform:uppercase}
+.tape{display:block;width:100%;height:44px;margin-top:6px}
+.tape .maj{stroke:#F6F1E6;stroke-width:1.6}
+.tape .min{stroke:#54697E;stroke-width:1}
+.tape .num{font-family:"Space Mono",monospace;font-size:8.5px;fill:#8FA6BB}
+.tape .num.on{fill:var(--ambre)}
+.tape .cur{fill:var(--ambre)}
+.tape .base{stroke:#2C4058;stroke-width:1}
+
+/* ---------- structure ---------- */
+main{padding:16px 14px 24px;max-width:640px;margin:0 auto}
+.card{background:var(--surface);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(22,40,60,.06)}
+.card.flat{box-shadow:none;background:var(--sable)}
+.sect-title{font-size:19px;margin:22px 2px 10px}
+.sect-title:first-child{margin-top:4px}
+hr.hair{border:none;border-top:1px solid var(--trait);margin:14px 0}
+
+/* ---------- chiffres ---------- */
+.bignum{font-family:"Space Mono",monospace;font-weight:700;font-size:40px;line-height:1;letter-spacing:-.03em}
+.macro-row{display:flex;gap:8px;margin-top:14px}
+.macro{flex:1;background:var(--sable);border-radius:10px;padding:9px 10px}
+.macro .k{font-family:"Space Mono",monospace;font-size:9.5px;letter-spacing:.12em;color:var(--encre3);text-transform:uppercase}
+.macro .v{font-family:"Space Mono",monospace;font-weight:700;font-size:17px;margin-top:3px}
+.macro .u{font-size:11px;font-weight:400;color:var(--encre2)}
+
+/* ---------- formulaire ---------- */
+label.f{display:block;margin-bottom:14px}
+label.f > span{display:block;font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--encre3);margin-bottom:6px}
+input[type=number],input[type=date],select{
+  width:100%;padding:11px 12px;border:1px solid var(--trait);border-radius:10px;background:#fff;
+}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{
+  flex:1;min-width:74px;padding:10px 8px;border:1px solid var(--trait);border-radius:10px;background:#fff;
+  font-size:13px;text-align:center;transition:.12s;
+}
+.seg button[aria-pressed=true]{background:var(--encre);color:#fff;border-color:var(--encre)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:8px 12px;border:1px solid var(--trait);border-radius:999px;background:#fff;font-size:13px}
+.chip[aria-pressed=true]{background:var(--teal-pale);border-color:var(--teal);color:var(--teal);font-weight:600}
+.cta{
+  width:100%;padding:15px;border-radius:12px;background:var(--teal);color:#fff;
+  font-weight:600;font-size:15.5px;letter-spacing:.01em;
+}
+.cta.ghost{background:#fff;color:var(--encre);border:1px solid var(--trait)}
+.cta.danger{background:#fff;color:var(--rouge);border:1px solid var(--rouge)}
+
+/* ---------- dispo jours ---------- */
+.day{border:1px solid var(--trait);border-radius:12px;padding:11px 12px;margin-bottom:8px;background:#fff}
+.day-top{display:flex;align-items:center;gap:10px}
+.day-name{font-weight:600;flex:1}
+.tog{width:46px;height:27px;border-radius:999px;background:var(--trait);position:relative;transition:.15s;flex:none}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog[aria-pressed=true]{background:var(--teal)}
+.tog[aria-pressed=true]::after{transform:translateX(19px)}
+.day-body{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.day-body select{padding:9px 10px;font-size:14px}
+
+/* ---------- séances ---------- */
+.sess{background:var(--surface);border-radius:var(--r);margin-bottom:10px;overflow:hidden;box-shadow:0 1px 2px rgba(22,40,60,.06)}
+.sess.today{box-shadow:0 0 0 2px var(--ambre)}
+.sess.rest{background:var(--sable);box-shadow:none}
+.sess-head{display:flex;align-items:center;gap:12px;padding:14px 16px;width:100%;text-align:left}
+.sess-day{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--encre3);width:34px;flex:none}
+.sess-t{flex:1}
+.sess-t .n{font-weight:600;font-size:15px}
+.sess-t .m{font-size:12.5px;color:var(--encre2);margin-top:1px}
+.sess-time{font-family:"Space Mono",monospace;font-size:12px;color:var(--encre2);flex:none}
+.caret{width:9px;height:9px;border-right:2px solid var(--encre3);border-bottom:2px solid var(--encre3);transform:rotate(45deg);flex:none;margin-left:2px;transition:.15s}
+.sess[open-x] .caret{transform:rotate(-135deg)}
+.sess-body{padding:0 16px 16px;border-top:1px solid var(--trait);margin-top:0;padding-top:12px}
+.ex{display:flex;gap:10px;padding:8px 0;border-bottom:1px dotted var(--trait)}
+.ex:last-child{border-bottom:none}
+.ex .nm{flex:1;font-size:14px}
+.ex .sr{font-family:"Space Mono",monospace;font-size:12.5px;color:var(--teal);font-weight:700;white-space:nowrap}
+.ex .tip{font-size:12px;color:var(--encre3);margin-top:2px;line-height:1.35}
+
+.ex .liens{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.ex .vid{font-size:11.5px;color:var(--teal);text-decoration:none;font-weight:600;
+  border:1px solid var(--teal);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.ex .vid::before{content:"▶";font-size:8px;margin-right:5px;vertical-align:1px}
+.ex .vid.mw{color:var(--encre);border-color:var(--trait)}
+.ex .vid.mw::before{content:"◧"}
+.ex .vid:active{opacity:.6}
+
+.repas{border-top:1px solid var(--trait);padding:12px 0 4px}
+.repas.off{opacity:.62}
+.repas-h{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:nowrap}
+.repas-h .lbl{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ambre);flex:1}
+.repas.off .lbl{color:var(--encre3)}
+.repas-h .kc{font-family:"Space Mono",monospace;font-size:11px;color:var(--encre2);
+  flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.etape{border-left:2px solid var(--trait);padding-left:13px;margin:0 0 4px 5px;position:relative}
+.etape:last-child{border-left-color:transparent}
+.etape-h{display:flex;align-items:baseline;gap:9px;padding:14px 0 4px}
+.etape-h .h{font-family:"Space Mono",monospace;font-size:11.5px;font-weight:700;color:var(--encre)}
+.etape-h .q{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--encre3)}
+.etape::before{content:"";position:absolute;left:-6px;top:19px;width:10px;height:10px;border-radius:50%;
+  background:#fff;border:2px solid var(--trait)}
+.etape.seance::before{border-color:var(--teal);background:var(--teal)}
+.etape.repas-etape::before{border-color:var(--ambre);background:var(--ambre)}
+.etape.marche::before{border-color:var(--encre2)}
+.sous-titre{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--encre3);margin:10px 0 2px}
+.etape .repas{border-top:none;padding-top:4px}
+
+.etape.repas-etape > .repas, .etape.repas-etape > .repas.off{
+  background:var(--vert);border-radius:10px;padding:11px 12px;margin-bottom:2px}
+.etape.repas-etape::before{border-color:var(--vert-fort);background:var(--vert-fort)}
+.etape.repas-etape .etape-h .q{color:var(--vert-fort)}
+.etape.seance .bloc-phys, .etape.marche .bloc-phys{
+  background:var(--jaune);border-radius:10px;padding:6px 12px 10px}
+.etape.seance::before{border-color:var(--jaune-fort);background:var(--jaune-fort)}
+.etape.marche::before{border-color:var(--jaune-fort);background:#fff}
+.etape.seance .etape-h .q, .etape.marche .etape-h .q{color:var(--jaune-fort)}
+.bloc-phys .ex{border-bottom-color:rgba(22,40,60,.14)}
+.demarrer{width:100%;padding:13px;border-radius:10px;background:var(--jaune-fort);color:#fff;
+  font-weight:600;font-size:14.5px;margin:8px 0 4px;letter-spacing:.01em}
+.demarrer::before{content:"▶";font-size:10px;margin-right:8px;vertical-align:1px}
+
+.jeune-chip.valide.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.ic-wrap{position:relative;display:inline-flex}
+.pastille{position:absolute;top:-5px;right:-9px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;
+  background:var(--rouge);color:#fff;font-family:"Space Mono",monospace;font-size:9.5px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;line-height:1}
+
+.sheet-ov{position:fixed;inset:0;z-index:150;background:rgba(22,40,60,.55);
+  display:flex;align-items:flex-end;justify-content:center;padding:0}
+.sheet{background:var(--surface);width:100%;max-width:520px;border-radius:18px 18px 0 0;
+  padding:20px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(22,40,60,.2)}
+.sheet-nm{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:20px;
+  letter-spacing:-.01em;margin:6px 0 14px}
+.sheet-in{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sheet-in input{flex:1;padding:14px 14px;font-size:19px;font-family:"Space Mono",monospace;
+  border:1px solid var(--trait);border-radius:12px}
+.sheet-in span{font-family:"Space Mono",monospace;font-size:14px;color:var(--encre2);min-width:48px}
+.sheet .cta{margin-bottom:8px}
+
+.lien-infos{display:inline-block;margin-top:12px;font-size:12.5px;font-weight:600;color:var(--teal);
+  border-bottom:1px solid var(--teal);padding:0 0 1px;line-height:1.2}
+.lien-infos::before{content:"ⓘ";margin-right:6px;font-weight:400}
+
+/* ---------- guide respiratoire ---------- */
+.g-ov{position:fixed;inset:0;z-index:200;background:var(--encre);color:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  padding:calc(24px + env(safe-area-inset-top)) 22px calc(24px + env(safe-area-inset-bottom));text-align:center}
+.g-close{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;width:38px;height:38px;
+  border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:17px}
+.g-num{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.16em;color:#8FA6BB;text-transform:uppercase}
+.g-nom{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:30px;line-height:1.12;
+  letter-spacing:-.02em;margin:10px 0 6px;max-width:16ch}
+.g-sr{font-family:"Space Mono",monospace;font-size:15px;color:var(--ambre)}
+.g-tip{font-size:13px;color:#A9BCCD;line-height:1.45;max-width:34ch;margin-top:10px}
+.g-pret{margin-top:26px;padding:20px 52px;border-radius:999px;background:var(--ambre);color:var(--encre);
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:21px;letter-spacing:-.01em}
+.g-disc{position:relative;display:flex;align-items:center;justify-content:center}
+.g-fond{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:min(92vw,420px);height:min(48vw,215px);display:flex;align-items:center;justify-content:center;
+  opacity:.72;pointer-events:none;z-index:0}
+.g-fond-svg{width:100%;height:100%}
+.g-svg{position:relative;z-index:1}
+/* disque translucide : la silhouette reste visible au travers */
+.g-cercle{fill-opacity:.42}
+.g-halo{stroke-opacity:.85}
+.g-serie{font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.08em;color:var(--ambre);margin-top:10px;text-transform:uppercase}
+.g-ov > *{position:relative;z-index:1}
+.g-scene{display:none;flex-direction:column;align-items:center;margin-top:14px;position:relative}
+.g-svg{width:min(62vw,238px);height:min(62vw,238px);display:block}
+.g-compte{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;
+  font-family:"Space Mono",monospace;font-weight:700;font-size:30px;color:#fff;
+  text-shadow:0 1px 6px rgba(10,20,32,.75)}
+.g-phase{font-family:"Space Mono",monospace;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:#CFE0EC;margin-top:8px}
+.g-cmd{display:flex;gap:8px;margin-top:16px}
+.g-cmd button{padding:11px 22px;border-radius:999px;font-size:13.5px;font-weight:600;
+  background:rgba(255,255,255,.14);color:#fff}
+.g-cmd .g-pause.on{background:var(--ambre);color:var(--encre)}
+.g-cmd .g-stop{background:rgba(169,59,44,.30);color:#FFC4BA}
+.g-bas{display:flex;gap:8px;margin-top:26px}
+.g-bas button{padding:11px 17px;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font-size:13.5px}
+.g-son[aria-pressed=false]{background:rgba(255,255,255,.04);color:#8FA6BB}
+
+/* ---------- repas ---------- */
+.meal-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.meal-h .lbl{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ambre)}
+.meal-h .kc{font-family:"Space Mono",monospace;font-size:12px;color:var(--encre2)}
+.meal-n{font-weight:600;font-size:15.5px;line-height:1.3;margin-bottom:8px}
+.ing{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;padding:3px 0;color:var(--encre2)}
+.ing .q{font-family:"Space Mono",monospace;color:var(--encre);white-space:nowrap}
+.note{font-size:12.5px;color:var(--encre2);background:var(--sable);border-radius:8px;padding:9px 11px;margin-top:10px;line-height:1.45}
+
+.jeune-chip{padding:4px 9px;border:1px solid var(--trait);border-radius:999px;font-size:10.5px;
+  font-family:"Space Mono",monospace;letter-spacing:.02em;color:var(--encre2);background:#fff;
+  white-space:nowrap;flex:none}
+.jeune-chip.on{background:var(--encre);border-color:var(--encre);color:#fff}
+.card.meal-off{background:var(--sable);box-shadow:none}
+
+.jeune-chip.valide.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.ic-wrap{position:relative;display:inline-flex}
+.pastille{position:absolute;top:-5px;right:-9px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;
+  background:var(--rouge);color:#fff;font-family:"Space Mono",monospace;font-size:9.5px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;line-height:1}
+
+.sheet-ov{position:fixed;inset:0;z-index:150;background:rgba(22,40,60,.55);
+  display:flex;align-items:flex-end;justify-content:center;padding:0}
+.sheet{background:var(--surface);width:100%;max-width:520px;border-radius:18px 18px 0 0;
+  padding:20px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(22,40,60,.2)}
+.sheet-nm{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:20px;
+  letter-spacing:-.01em;margin:6px 0 14px}
+.sheet-in{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sheet-in input{flex:1;padding:14px 14px;font-size:19px;font-family:"Space Mono",monospace;
+  border:1px solid var(--trait);border-radius:12px}
+.sheet-in span{font-family:"Space Mono",monospace;font-size:14px;color:var(--encre2);min-width:48px}
+.sheet .cta{margin-bottom:8px}
+
+.lien-infos{display:inline-block;margin-top:12px;font-size:12.5px;font-weight:600;color:var(--teal);
+  border-bottom:1px solid var(--teal);padding:0 0 1px;line-height:1.2}
+.lien-infos::before{content:"ⓘ";margin-right:6px;font-weight:400}
+
+/* ---------- guide ---------- */
+.rule{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--trait)}
+.rule:last-child{border-bottom:none}
+.rule .m{font-family:"Space Mono",monospace;font-size:11px;font-weight:700;width:20px;flex:none;color:var(--rouge)}
+.rule.ok .m{color:var(--teal)}
+.rule .tx{flex:1;font-size:14px}
+.rule .tx b{font-weight:600}
+.rule .tx small{display:block;color:var(--encre3);font-size:12.5px;margin-top:2px;line-height:1.4}
+
+.course{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:11px 2px;border-bottom:1px solid var(--trait)}
+.course:last-child{border-bottom:none}
+.course .box{width:19px;height:19px;border:1.6px solid var(--trait);border-radius:5px;flex:none;position:relative;background:#fff}
+.course.ok .box{background:var(--teal);border-color:var(--teal)}
+.course.ok .box::after{content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;border:solid #fff;border-width:0 2.2px 2.2px 0;transform:rotate(43deg)}
+.course .nm{flex:1;font-size:14.5px}
+.course .q{font-family:"Space Mono",monospace;font-size:12.5px;color:var(--encre2);white-space:nowrap}
+.course.ok .nm{text-decoration:line-through;color:var(--encre3)}
+.course.ok .q{color:var(--encre3)}
+
+.ph{flex:1;margin:0}
+.ph img{width:100%;border-radius:10px;display:block;background:var(--sable)}
+.ph figcaption{font-family:"Space Mono",monospace;font-size:10px;color:var(--encre3);margin-top:5px;text-align:center}
+.galerie{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.ph.mini{position:relative}
+.del-photo{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;
+  background:rgba(22,40,60,.72);color:#fff;font-size:14px;line-height:1}
+
+/* ---------- suivi ---------- */
+.log-row{display:flex;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--trait);font-size:14px}
+.log-row .d{font-family:"Space Mono",monospace;font-size:11.5px;color:var(--encre3);width:52px;flex:none}
+.log-row .v{font-family:"Space Mono",monospace;flex:1}
+.log-row .del{color:var(--encre3);font-size:18px;line-height:1;padding:0 4px}
+.spark{width:100%;height:110px;display:block;background:var(--sable);border-radius:10px}
+
+/* ---------- schémas animés ---------- */
+.anim-hote{position:relative;background:var(--sable);border-radius:10px;margin:4px 0 10px;padding:6px 6px 26px;overflow:hidden}
+.anim-hote.anim-err{background:var(--rouge-pale)}
+.anim-svg{display:block;width:100%;height:126px}
+.anim-legende{position:absolute;left:11px;right:42px;bottom:6px;font-size:11.5px;line-height:1.3;color:var(--encre2)}
+.anim-err .anim-legende{color:var(--rouge)}
+.anim-btn{position:absolute;right:8px;bottom:6px;width:26px;height:26px;border-radius:50%;background:#fff;border:1px solid var(--trait)}
+.anim-btn::before{content:"";position:absolute;left:10px;top:7px;border-left:8px solid var(--encre);border-top:6px solid transparent;border-bottom:6px solid transparent}
+.anim-btn.pause::before{left:9px;top:7px;width:3px;height:11px;background:var(--encre);border:none;box-shadow:5px 0 0 var(--encre)}
+
+/* ---------- nav ---------- */
+nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:50;
+  background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
+  border-top:1px solid var(--trait);
+  display:flex;height:var(--nav-h);padding-bottom:env(safe-area-inset-bottom);
+}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--encre3)}
+nav button .ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+nav button .lb{font-family:"Space Mono",monospace;font-size:9.5px;letter-spacing:.06em}
+nav button[aria-current=page]{color:var(--encre)}
+nav button[aria-current=page] .lb{font-weight:700}
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 18px);
+  background:var(--encre);color:#fff;padding:11px 18px;border-radius:999px;font-size:13.5px;z-index:60;
+  opacity:0;pointer-events:none;transition:.2s;
+}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="ruban">
+  <div class="ruban-head">
+    <div class="t" id="rubTitle">Chocolat</div>
+    <div class="s" id="rubSub">programme 12 semaines</div>
+  </div>
+  <svg class="tape" id="tape" viewBox="0 0 360 44" preserveAspectRatio="none" aria-hidden="true"></svg>
+</header>
+
+<main id="app"></main>
+
+<nav id="nav"></nav>
+<div class="toast" id="toast"></div>
+
+<script src="mouvements.js"></script>
+<script>
+/* ============================================================
+   STOCKAGE — window.storage (artefact) → localStorage → mémoire
+   ============================================================ */
+const Store = (()=>{
+  const mem = {};
+  const hasWin = typeof window!=='undefined' && window.storage && typeof window.storage.get==='function';
+  let hasLS=false;
+  try{ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); hasLS=true; }catch(e){}
+  return {
+    persistant: hasWin || hasLS,
+    async get(k){
+      if(hasWin){ try{ const r=await window.storage.get(k); return r? r.value:null; }catch(e){ return null; } }
+      if(hasLS){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+      return mem[k] ?? null;
+    },
+    async set(k,v){
+      if(hasWin){ try{ await window.storage.set(k,v); return; }catch(e){} }
+      if(hasLS){ try{ localStorage.setItem(k,v); return; }catch(e){} }
+      mem[k]=v;
+    },
+    async del(k){
+      if(hasWin){ try{ await window.storage.delete(k); return; }catch(e){} }
+      if(hasLS){ try{ localStorage.removeItem(k); return; }catch(e){} }
+      delete mem[k];
+    }
+  };
+})();
+
+/* ============================================================
+   ÉTAT
+   ============================================================ */
+const CLE = {profil:'chocolat:profil', journal:'chocolat:journal'};
+const JOURS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+const JOURS_C = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+
+const defaultProfil = {
+  sexe:'h', age:40, poids:80, taille:178, taille_ventre:null,
+  activite:'debout', rythme:'standard', equip:'halteres',
+  regime:[],
+  jeune:{}, accessoires:['halteres','elastique','banc'], courses:{jours:7, coches:{}}, inventaire:{}, valides:{},
+  dispo: JOURS.map((_,i)=>({on: i<5 && i%2===0 ? true : (i===5), creneau: i===5?'matin':'soir', minutes: i===5?55:50})),
+  depart: todayISO()
+};
+
+let P = null;
+let journal = [];
+let tab = 'semaine';
+let openSess = {};
+let infos = {};          // blocs d'explication repliés par défaut
+let menuSeed = 0;
+
+function todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),1800); }
+
+async function save(){
+  await Store.set(CLE.profil, JSON.stringify(P));
+  await Store.set(CLE.journal, JSON.stringify(journal));
+}
+
+/* ============================================================
+   CALCULS PHYSIOLOGIQUES
+   ============================================================ */
+const FACT_ACT = { sedentaire:1.35, debout:1.50, actif:1.65, sportif:1.80 };
+const LBL_ACT = { sedentaire:'Assis la journée', debout:'Debout / en mouvement', actif:'Actif, beaucoup de marche', sportif:'Métier physique' };
+const RYTHME = { doux:0.0035, standard:0.0055, soutenu:0.0070 };
+const LBL_RYT = { doux:'Douce', standard:'Standard', soutenu:'Soutenue' };
+
+function calculs(p){
+  const bmr = p.sexe==='h'
+    ? 10*p.poids + 6.25*p.taille - 5*p.age + 5
+    : 10*p.poids + 6.25*p.taille - 5*p.age - 161;
+  const tdee = bmr * FACT_ACT[p.activite];
+  const perteSem = p.poids * RYTHME[p.rythme];          // kg/semaine
+  let deficit = perteSem * 7700 / 7;                     // kcal/jour
+  const plancher = Math.max(p.sexe==='h'?1500:1300, bmr*1.05);
+  let cible = tdee - deficit;
+  let brid = false;
+  if(cible < plancher){ cible = plancher; deficit = tdee - cible; brid = true; }
+  cible = Math.round(cible/10)*10;
+  const prot = Math.round(p.poids*1.9);
+  const lip  = Math.round(p.poids*0.9);
+  const glu  = Math.max(60, Math.round((cible - prot*4 - lip*9)/4));
+  const fibres = Math.round(cible/1000*14);
+  const eau = (p.poids*0.033).toFixed(1);
+  const perteReelle = deficit*7/7700;
+  const pas = p.activite==='sedentaire'?9000:p.activite==='debout'?10000:11000;
+  return {
+    bmr:Math.round(bmr), tdee:Math.round(tdee), cible, deficit:Math.round(deficit),
+    prot, lip, glu, fibres, eau, brid, plancher:Math.round(plancher),
+    perteSem:perteReelle, projection: (p.poids - perteReelle*12).toFixed(1), pas
+  };
+}
+
+function semaineCourante(){
+  const d0 = new Date(P.depart+'T00:00:00');
+  const diff = Math.floor((Date.now()-d0.getTime())/86400000);
+  return Math.min(12, Math.max(1, Math.floor(diff/7)+1));
+}
+function phase(){
+  const s = semaineCourante();
+  if(s<=4) return {n:1, nom:'Fondations', txt:"Priorité à la respiration et au vacuum. Aucun exercice de flexion lestée. On apprend à contenir la pression avant de la charger."};
+  if(s<=8) return {n:2, nom:'Charge', txt:"Tenues allongées, résistance au Pallof, roue abdominale à genoux en amplitude partielle — en surveillant le bombement."};
+  return {n:3, nom:'Définition', txt:"Amplitude complète à la roue, hollow rocks, une séance de cardio en plus. Ne pas creuser le déficit maintenant : c'est là qu'on perd du muscle."};
+}
+
+/* ============================================================
+   BASE D'EXERCICES
+   ============================================================ */
+// ---------- accessoires disponibles à la maison ----------
+// L'ordre définit la priorité : le premier accessoire possédé qui convient à
+// l'exercice est retenu ; à défaut, on retombe sur la version poids du corps.
+const ACCESSOIRES = [
+  ['halteres',   'Haltères'],
+  ['kettlebell', 'Kettlebell'],
+  ['elastique',  'Élastiques'],
+  ['barre',      'Barre de traction'],
+  ['trx',        'Sangles de suspension'],
+  ['banc',       'Banc ou chaise solide'],
+  ['swissball',  'Swiss ball'],
+  ['roue',       'Roue abdominale'],
+  ['corde',      'Corde à sauter'],
+  ['trampoline', 'Trampoline']
+];
+const aDispo = id => (P.accessoires||[]).indexOf(id) >= 0;
+
+// choisit le nom de l'exercice selon le matériel, et renvoie l'accessoire retenu
+// L'ordre des clés de `acc` fixe la préférence propre à l'exercice : une barre de
+// traction prime sur une haltère pour un tirage vertical, l'inverse pour un rowing.
+function nomEx(e){
+  if(P.equip === 'salle') return {nm:e.salle, id:'salle'};
+  if(P.equip === 'pdc')   return {nm:e.pdc,   id:'pdc'};
+  if(e.acc) for(const id of Object.keys(e.acc)) if(aDispo(id)) return {nm:e.acc[id], id};
+  return {nm:e.pdc, id:'pdc'};
+}
+function choisirVariante(map){
+  if(!map) return null;
+  if(P.equip === 'accessoires'){
+    for(const id of Object.keys(map)) if(id !== 'pdc' && aDispo(id)) return map[id];
+    return map.pdc || null;
+  }
+  return map[P.equip] || null;
+}
+
+// MuscleWiki — identifiants par matériel. Le motif est régulier mais toutes les
+// adresses ne sont pas vérifiées : d'où le second lien YouTube, toujours valide.
+const MW = {
+  squat:    {salle:'barbell-squat', halteres:'dumbbell-goblet-squat', kettlebell:'kettlebell-goblet-squat', elastique:'band-squat', pdc:'bodyweight-squat'},
+  bulgare:  {salle:'barbell-bulgarian-split-squat', halteres:'dumbbell-bulgarian-split-squat', kettlebell:'kettlebell-bulgarian-split-squat', banc:'bulgarian-split-squat', pdc:'bulgarian-split-squat'},
+  fente:    {salle:'barbell-lunge', halteres:'dumbbell-lunge', kettlebell:'kettlebell-lunge', elastique:'band-lunge', pdc:'bodyweight-lunge'},
+  hinge:    {salle:'barbell-romanian-deadlift', halteres:'dumbbell-romanian-deadlift', kettlebell:'kettlebell-romanian-deadlift', elastique:'band-romanian-deadlift', pdc:'single-leg-romanian-deadlift'},
+  hinge2:   {salle:'barbell-deadlift', halteres:'dumbbell-deadlift', kettlebell:'kettlebell-deadlift', banc:'single-leg-hip-thrust', pdc:'single-leg-hip-thrust'},
+  hip:      {salle:'barbell-hip-thrust', halteres:'dumbbell-hip-thrust', kettlebell:'kettlebell-hip-thrust', banc:'hip-thrust', pdc:'single-leg-glute-bridge'},
+  legcurl:  {salle:'machine-leg-curl', swissball:'stability-ball-leg-curl', trx:'trx-leg-curl', pdc:'slider-leg-curl'},
+  presse:   {salle:'barbell-bench-press', halteres:'dumbbell-bench-press', elastique:'band-chest-press', banc:'decline-push-up', pdc:'push-up'},
+  presse2:  {salle:'barbell-incline-bench-press', halteres:'dumbbell-incline-bench-press', elastique:'band-incline-press', banc:'decline-push-up', pdc:'archer-push-up'},
+  epaules:  {salle:'barbell-overhead-press', halteres:'dumbbell-shoulder-press', kettlebell:'kettlebell-shoulder-press', elastique:'band-shoulder-press', pdc:'pike-push-up'},
+  rowH:     {salle:'cable-seated-row', halteres:'dumbbell-row', trx:'trx-row', elastique:'band-seated-row', banc:'inverted-row', pdc:'inverted-row'},
+  rowH2:    {salle:'barbell-row', halteres:'dumbbell-bent-over-row', elastique:'band-bent-over-row', trx:'trx-row', pdc:'inverted-row'},
+  traction: {salle:'pull-up', barre:'pull-up', trx:'trx-inverted-row', elastique:'band-lat-pulldown', halteres:'dumbbell-pullover', pdc:'feet-elevated-inverted-row'},
+  superman: {salle:'back-extension', elastique:'band-pull-apart', pdc:'superman'}
+};
+function lienMW(cle, id){
+  const t = MW[cle]; if(!t) return null;
+  const slug = t[id] || t.pdc; if(!slug) return null;
+  return 'https://musclewiki.com/exercise/' + slug;
+}
+
+// lien vers une recherche YouTube — plus robuste qu'un identifiant de vidéo,
+// qui peut être supprimé ou renommé par sa chaîne
+function lienVideo(nom){
+  let n = nom.replace(/\([^)]*\)/g,'');
+  const parts = n.split(',');
+  if(parts.length > 1) n = parts.filter(x=>!/\d/.test(x)).join(' ') || parts[0];
+  if(!n.trim()) n = nom;
+  const q = n.replace(/\s+/g,' ').trim() + ' technique exercice';
+  return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+}
+
+const EX = {
+  squat:{salle:'Squat barre', pdc:'Squat au poids du corps, descente 3 s', sr:'3 × 10',
+    acc:{halteres:'Squat gobelet (haltère)', kettlebell:'Squat gobelet kettlebell', elastique:'Squat avec élastique'},
+    tip:'Expire en montant. Côtes basses, pas de blocage respiratoire.'},
+  bulgare:{salle:'Squat bulgare barre', pdc:'Squat bulgare', sr:'3 × 10 / jambe',
+    acc:{halteres:'Squat bulgare haltères', kettlebell:'Squat bulgare kettlebell', banc:'Squat bulgare, pied arrière sur le banc'},
+    tip:'Le travail unilatéral corrige les déséquilibres et sollicite fort les fessiers.'},
+  fente:{salle:'Fentes marchées', pdc:'Fentes au poids du corps', sr:'3 × 12 / jambe',
+    acc:{halteres:'Fentes haltères', kettlebell:'Fentes kettlebell', elastique:'Fentes avec élastique'}, tip:''},
+  hinge:{salle:'Soulevé de terre roumain', pdc:'Soulevé de terre une jambe au poids du corps', sr:'3 × 10',
+    acc:{halteres:'SDT roumain haltères', kettlebell:'SDT roumain kettlebell', elastique:'SDT roumain élastique'},
+    tip:'Les hanches partent en arrière, le dos ne s\'arrondit pas.'},
+  hinge2:{salle:'Soulevé de terre', pdc:'Hip thrust une jambe (épaules sur le canapé)', sr:'3 × 8',
+    acc:{halteres:'SDT haltères', kettlebell:'SDT kettlebell', banc:'Hip thrust une jambe, épaules sur le banc'},
+    tip:'Reste à 2 répétitions de la limite. Pas de record sur ces 12 semaines.'},
+  hip:{salle:'Hip thrust barre', pdc:'Pont fessier une jambe', sr:'3 × 12',
+    acc:{halteres:'Hip thrust haltère', kettlebell:'Hip thrust kettlebell', banc:'Hip thrust, épaules sur le banc'},
+    tip:'Des fessiers forts replacent le bassin : c\'est un exercice « ventre plat », programmé deux fois par semaine à dessein.'},
+  legcurl:{salle:'Leg curl', pdc:'Leg curl glissé (serviette sous les talons)', sr:'3 × 12',
+    acc:{swissball:'Leg curl sur swiss ball', trx:'Leg curl en suspension'}, tip:''},
+  presse:{salle:'Développé couché', pdc:'Pompes (pieds surélevés si trop faciles)', sr:'3 × 8–10',
+    acc:{halteres:'Développé haltères au sol', elastique:'Développé élastique', banc:'Pompes, pieds sur le banc'}, tip:''},
+  presse2:{salle:'Développé incliné', pdc:'Pompes archer', sr:'3 × 10',
+    acc:{halteres:'Développé incliné haltères', elastique:'Développé incliné élastique', banc:'Pompes déclinées, pieds sur le banc'}, tip:''},
+  epaules:{salle:'Développé militaire', pdc:'Pike push-ups', sr:'3 × 10',
+    acc:{halteres:'Développé haltères debout', kettlebell:'Développé kettlebell', elastique:'Développé élastique debout'},
+    tip:'Ne cambre pas le bas du dos pour finir la série.'},
+  rowH:{salle:'Tirage horizontal', pdc:'Rowing australien sous une table', sr:'3 × 10',
+    acc:{halteres:'Rowing haltère un bras', trx:'Rowing en suspension', elastique:'Tirage horizontal élastique', banc:'Rowing australien sous le banc'}, tip:''},
+  rowH2:{salle:'Rowing barre', pdc:'Rowing australien, prise large', sr:'3 × 12',
+    acc:{halteres:'Rowing haltères buste penché', elastique:'Rowing élastique', trx:'Rowing en suspension, prise large'}, tip:''},
+  traction:{salle:'Tirage vertical / tractions', pdc:'Rowing australien, pieds surélevés', sr:'3 × 8–10',
+    acc:{barre:'Tractions (assistées si besoin)', trx:'Tirage vertical en suspension', elastique:'Tirage vertical élastique', halteres:'Pull-over haltère'},
+    tip:'Sans barre ni sangles, le tirage horizontal reste la meilleure option pour le dos.'},
+  superman:{salle:'Extension lombaire au banc', pdc:'Superman Y-T-W au sol', sr:'3 × 12',
+    acc:{elastique:'Y-T-W à l\'élastique', banc:'Extension lombaire sur le banc'},
+    tip:'Contre le rib flare et les épaules enroulées : c\'est un exercice de posture, pas de force.'}
+};
+const MUSCU = {
+  A:{nom:'Musculation A',ex:['squat','presse','rowH','fente','hip']},
+  B:{nom:'Musculation B',ex:['hinge','traction','epaules','bulgare','legcurl']},
+  C:{nom:'Musculation C',ex:['hinge2','presse2','rowH2','hip','superman']}
+};
+const CORE = {
+  A:{nom:'Gainage A',items:[
+    ['Respiration 90/90','3 × 5 cycles','Dos au sol, pieds sur une chaise. Expire 5 s, poumons vides 2 s, inspire 3 s.','respiration9090'],
+    ['Dead bug','3 × 8 / côté','Départ bras tendus au sol derrière la tête : les épaules ne se reposent jamais, l\'exigence anti-extension est maximale. Expire sur l\'extension, lombaires plaquées.','deadbug'],
+    ['Planche RKC','4 × 15 s','Courte et maximale : fessiers serrés, coudes tirés vers les pieds, bassin en rétroversion.','plancheRKC'],
+    ['Pallof press','3 × 12 / côté','Anti-rotation debout. Le meilleur rapport résultat/risque pour la taille.','pallof',
+      {elastique:{nm:'Pallof press à l\'élastique',sr:'3 × 12 / côté',tip:'Élastique fixé sur le côté, à hauteur de sternum. Le buste ne tourne pas d\'un degré.',anim:'pallof'},
+       halteres:{nm:'Renegade row',sr:'3 × 8 / bras',tip:'En planche, une haltère dans chaque main : tire une haltère au sol sans que le bassin tourne.',anim:'renegade'},
+       kettlebell:{nm:'Renegade row kettlebell',sr:'3 × 8 / bras',tip:'Même principe qu\'avec les haltères : le bassin reste parfaitement stable.',anim:'renegade'},
+       pdc:{nm:'Shoulder taps en planche',sr:'3 × 10 / côté',tip:'En planche, touche l\'épaule opposée avec la main. Le bassin ne doit pas basculer d\'un millimètre.',anim:'shoulderTaps'}}],
+    ['Suitcase carry','3 × 30 m / bras','Une seule charge lourde, buste parfaitement droit, pas d\'inclinaison.','suitcase',
+      {kettlebell:{nm:'Suitcase carry kettlebell',sr:'3 × 30 m / bras',tip:'Une seule kettlebell, buste parfaitement droit.',anim:'suitcase'},
+       pdc:{nm:'Copenhagen plank',sr:'3 × 20 s / côté',tip:'Sur le côté, jambe du dessus posée sur une chaise, jambe du dessous décollée. Adducteurs et obliques profonds, sans aucune charge.',anim:'copenhagen'}}]
+  ]},
+  B:{nom:'Gainage B',items:[
+    ['Vacuum abdominal','5 × 12 s','Expire tout l\'air, aspire le ventre sous les côtes sans inspirer.','vacuum'],
+    ['Hollow body hold','3 × 20–30 s','Lombaires collées au sol. Si elles décollent, remonte les bras et les jambes.','hollow'],
+    ['Planche latérale','3 × 25 s / côté','Hanche haute, épaule au-dessus du coude.','plancheLaterale'],
+    ['Reverse crunch contrôlé','3 × 12','Enroule le bassin en expirant, 3 s de descente. Seul exercice de flexion conservé.','reverseCrunch'],
+    ['Bird dog','3 × 8 / côté','Un verre d\'eau posé sur le bas du dos ne doit pas bouger.','birdDog']
+  ]}
+};
+function exGainage(x){
+  const v = choisirVariante(x[4]);
+  if(!v) return {nm:x[0], sr:x[1], tip:x[2], anim:x[3]};
+  return {nm:v.nm, sr:v.sr||x[1], tip:v.tip||x[2], anim:('anim' in v)? v.anim : x[3]};
+}
+const MOBILITE = {nom:'Mobilité + vacuum',items:[
+  ['Vacuum abdominal','5 × 12 s','À jeun de préférence.','vacuum'],
+  ['Table inversée','3 × 10','Ouvre les hanches et les épaules, à l\'opposé de la position assise. Côtes basses, nuque longue — ne laisse pas la tête tomber en arrière.','tableInversee'],
+  ['Étirement psoas (fente genou au sol)','2 × 45 s / côté','Contre la bascule antérieure du bassin.','psoas'],
+  ['Pont fessier','3 × 15','Fessiers, pas lombaires.','pontFessier'],
+  ['Étirement ischio-jambiers','2 × 45 s / côté','']
+]};
+
+// le cardio profite aussi des accessoires disponibles
+function cardioEx(min){
+  if(P.equip==='accessoires' && aDispo('trampoline'))
+    return {nm:'Rebonds sur trampoline', sr:min+' min', tip:'Impact très faible pour les articulations, et l\'allure reste conversationnelle. Alterne rebonds simples et montées de genoux.'};
+  if(P.equip==='accessoires' && aDispo('corde'))
+    return {nm:'Corde à sauter, intervalles souples', sr:min+' min', tip:'30 s de saut, 30 s de marche. Reste en zone conversationnelle : ce n\'est pas une séance de HIIT.'};
+  return {nm:'Marche rapide, vélo ou rameur', sr:min+' min', tip:'Allure où tu peux encore tenir une conversation. Le nez suffit à respirer.'};
+}
+
+/* ============================================================
+   CONSTRUCTION DE LA SEMAINE
+   ============================================================ */
+function buildSemaine(){
+  const dispo = P.dispo.map((d,i)=>({...d, i}));
+  const longs = dispo.filter(d=>d.on && d.minutes>=40);
+  const courts = dispo.filter(d=>d.on && d.minutes<40);
+
+  // choisir les jours de musculation, les plus espacés possible
+  let muscuJours = [];
+  if(longs.length>=4) muscuJours = [longs[0], longs[Math.floor(longs.length/2)], longs[longs.length-1]];
+  else if(longs.length===3) muscuJours = [...longs];
+  else if(longs.length===2) muscuJours = [...longs];
+  else if(longs.length===1) muscuJours = [...longs];
+  muscuJours = [...new Set(muscuJours.map(d=>d.i))].map(i=>dispo[i]);
+
+  const lettres = muscuJours.length>=3 ? ['A','B','C'] : muscuJours.length===2 ? ['A','B'] : ['A'];
+  const plan = JOURS.map((nom,i)=>({jour:nom, court:JOURS_C[i], i, blocs:[], creneau:dispo[i].creneau, minutes:dispo[i].minutes, on:dispo[i].on}));
+
+  let coreRestants = ['A','B'];
+  muscuJours.forEach((d,k)=>{
+    const L = lettres[k % lettres.length];
+    const bloc = {type:'muscu', titre:MUSCU[L].nom, ex:MUSCU[L].ex.map(key=>{
+      const e = EX[key], r = nomEx(e); return {nm:r.nm, sr:e.sr, tip:e.tip, mw:lienMW(key, r.id)};
+    })};
+    if(d.minutes<45) bloc.ex = bloc.ex.slice(0,4);
+    plan[d.i].blocs.push(bloc);
+    if(d.minutes>=55 && coreRestants.length){
+      const c = coreRestants.shift();
+      plan[d.i].blocs.push({type:'core', titre:CORE[c].nom, ex:CORE[c].items.map(exGainage)});
+    }
+  });
+
+  // jours restants : gainage manquant, puis cardio
+  const restants = dispo.filter(d=>d.on && !muscuJours.some(m=>m.i===d.i));
+  let cardioMis = 0;
+  const cardioCible = phase().n===3 ? 2 : 1;
+  restants.forEach(d=>{
+    if(coreRestants.length && d.minutes>=25){
+      const c = coreRestants.shift();
+      plan[d.i].blocs.push({type:'core', titre:CORE[c].nom, ex:CORE[c].items.map(exGainage)});
+      if(d.minutes>=40){ plan[d.i].blocs.push({type:'cardio', titre:'Cardio zone 2 — '+(d.minutes-20)+' min', ex:[cardioEx(d.minutes-20)]}); cardioMis++; }
+    } else if(cardioMis<cardioCible && d.minutes>=25){
+      plan[d.i].blocs.push({type:'cardio', titre:'Cardio zone 2 — '+d.minutes+' min', ex:[cardioEx(d.minutes)]});
+      cardioMis++;
+    } else if(d.minutes>=20){
+      plan[d.i].blocs.push({type:'mob', titre:MOBILITE.nom, ex:MOBILITE.items.map(exGainage)});
+    }
+  });
+  // gainage restant : le glisser sur un jour de musculation court
+  coreRestants.forEach(c=>{
+    const cible = muscuJours[muscuJours.length-1] || dispo.find(d=>d.on);
+    if(cible) plan[cible.i].blocs.push({type:'core', titre:CORE[c].nom+' (à enchaîner)', ex:CORE[c].items.map(exGainage)});
+  });
+  return plan;
+}
+
+/* ============================================================
+   BASE DE REPAS
+   tags : viande, poisson, lactose, gluten
+   calme : peu fermentescible (privilégié le soir)
+   ============================================================ */
+const REPAS = {
+  pdj:[
+    {n:'Skyr, flocons d\'avoine, myrtilles et amandes',kcal:480,p:38,tags:['lactose','gluten'],ing:[['Skyr nature',250,'g'],['Flocons d\'avoine',45,'g'],['Myrtilles',80,'g'],['Amandes',15,'g']]},
+    {n:'Omelette 3 œufs, épinards, pain complet',kcal:470,p:32,tags:['gluten','oeuf'],calme:1,ing:[['Œufs',3,'u'],['Épinards',100,'g'],['Pain complet',60,'g'],['Huile d\'olive',5,'g']]},
+    {n:'Fromage blanc 0 %, kiwi, noix et graines de chia',kcal:400,p:30,tags:['lactose'],calme:1,ing:[['Fromage blanc 0 %',300,'g'],['Kiwi',2,'u'],['Noix',20,'g'],['Graines de chia',10,'g']]},
+    {n:'Porridge protéiné banane-cannelle',kcal:520,p:40,tags:['lactose','gluten'],ing:[['Flocons d\'avoine',60,'g'],['Lait demi-écrémé',250,'ml'],['Whey',25,'g'],['Banane',1,'u'],['Cannelle',1,'pincée']]},
+    {n:'Œufs brouillés, pommes de terre sautées, tomates',kcal:450,p:28,tags:['oeuf'],calme:1,ing:[['Œufs',3,'u'],['Pommes de terre',180,'g'],['Tomates',120,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Skyr, fraises et beurre de cacahuète',kcal:430,p:32,tags:['lactose'],calme:1,ing:[['Skyr nature',250,'g'],['Fraises',150,'g'],['Beurre de cacahuète',20,'g']]},
+    {n:'Porridge protéiné vegan, boisson de soja et myrtilles',kcal:500,p:32,tags:['gluten'],ing:[['Flocons d\'avoine',60,'g'],['Boisson de soja',250,'ml'],['Protéine de pois',30,'g'],['Myrtilles',80,'g']]},
+    {n:'Tofu brouillé, épinards, pommes de terre sautées',kcal:470,p:28,tags:[],calme:1,ing:[['Tofu ferme',200,'g'],['Épinards',150,'g'],['Pommes de terre',200,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Tofu brouillé au curcuma, courgette, tortilla',kcal:450,p:30,tags:['gluten'],ing:[['Tofu ferme',200,'g'],['Courgettes',120,'g'],['Tortilla complète',1,'u'],['Huile d\'olive',8,'g']]},
+    {n:'Maquereau, pain de seigle, avocat',kcal:500,p:28,tags:['poisson','gluten'],calme:1,ing:[['Filets de maquereau',110,'g'],['Pain de seigle',60,'g'],['Avocat',60,'g'],['Citron',0.5,'u']]},
+    {n:'Yaourt grec, fraises et noix de pécan',kcal:430,p:30,tags:['lactose'],calme:1,ing:[['Yaourt grec',250,'g'],['Fraises',150,'g'],['Noix de pécan',20,'g']]},
+    {n:'Yaourt grec, beurre de cacahuète et myrtilles',kcal:470,p:32,tags:['lactose'],calme:1,ing:[['Yaourt grec',250,'g'],['Beurre de cacahuète',20,'g'],['Myrtilles',100,'g']]},
+    {n:'Œufs brouillés, patate douce rôtie, épinards',kcal:460,p:28,tags:['oeuf'],calme:1,ing:[['Œufs',3,'u'],['Patate douce',200,'g'],['Épinards',120,'g'],['Huile d\'olive',8,'g']]}
+  ],
+  dej:[
+    {n:'Poulet grillé, riz basmati, brocolis',kcal:640,p:48,tags:['viande'],calme:1,ing:[['Blanc de poulet',180,'g'],['Riz cru',80,'g'],['Brocolis',200,'g'],['Huile d\'olive',10,'g']]},
+    {n:'Saumon, quinoa, haricots verts, citron',kcal:660,p:42,tags:['poisson'],calme:1,ing:[['Pavé de saumon',150,'g'],['Quinoa cru',70,'g'],['Haricots verts',200,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Bœuf haché 5 %, patate douce, épinards',kcal:620,p:45,tags:['viande'],calme:1,ing:[['Bœuf haché 5 %',170,'g'],['Patate douce',250,'g'],['Épinards',150,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Lentilles corail, œufs pochés, carottes, riz',kcal:610,p:32,tags:['oeuf'],ing:[['Lentilles corail crues',70,'g'],['Œufs',2,'u'],['Carottes',150,'g'],['Riz cru',40,'g']]},
+    {n:'Salade niçoise — thon, pommes de terre, œuf',kcal:590,p:42,tags:['poisson','oeuf'],calme:1,ing:[['Thon au naturel',150,'g'],['Pommes de terre',220,'g'],['Œufs',1,'u'],['Haricots verts',120,'g'],['Olives',7,'g'],['Huile d\'olive',5,'g']]},
+    {n:'Dinde, boulgour, ratatouille',kcal:600,p:46,tags:['viande','gluten'],ing:[['Escalope de dinde',180,'g'],['Boulgour cru',70,'g'],['Ratatouille',250,'g']]},
+    {n:'Tofu sauté, nouilles de riz, pak choï, sésame',kcal:580,p:32,tags:[],ing:[['Tofu ferme',220,'g'],['Nouilles de riz crues',70,'g'],['Pak choï',200,'g'],['Graines de sésame',6,'g'],['Huile d\'olive',6,'g']]},
+    {n:'Cabillaud, riz complet, courgettes',kcal:570,p:44,tags:['poisson'],calme:1,ing:[['Dos de cabillaud',200,'g'],['Riz cru',70,'g'],['Courgettes',200,'g'],['Huile d\'olive',10,'g']]},
+    {n:'Poulet, semoule complète, légumes et pois chiches',kcal:680,p:47,tags:['viande','gluten'],ing:[['Blanc de poulet',170,'g'],['Semoule complète crue',70,'g'],['Courgettes',110,'g'],['Carottes',90,'g'],['Pois chiches cuits',80,'g']]},
+    {n:'Tempeh, patate douce, brocolis',kcal:620,p:38,tags:[],ing:[['Tempeh',180,'g'],['Patate douce',250,'g'],['Brocolis',180,'g'],['Huile d\'olive',10,'g']]},
+    {n:'Pois chiches rôtis, quinoa, courgettes',kcal:600,p:24,tags:[],ing:[['Pois chiches cuits',200,'g'],['Quinoa cru',65,'g'],['Courgettes',200,'g'],['Huile d\'olive',10,'g']]},
+    {n:'Tempeh grillé, riz, ratatouille',kcal:600,p:38,tags:[],ing:[['Tempeh',180,'g'],['Riz cru',70,'g'],['Ratatouille',250,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Dinde, riz complet, brocolis et aubergine',kcal:610,p:46,tags:['viande'],ing:[['Escalope de dinde',180,'g'],['Riz cru',70,'g'],['Brocolis',150,'g'],['Aubergine',120,'g'],['Huile d\'olive',10,'g']]},
+    {n:'Poulet, patate douce, haricots verts',kcal:640,p:48,tags:['viande'],calme:1,ing:[['Blanc de poulet',180,'g'],['Patate douce',260,'g'],['Haricots verts',200,'g'],['Huile d\'olive',10,'g']]}
+  ],
+  din:[
+    {n:'Colin vapeur, riz blanc, courgettes',kcal:470,p:40,tags:['poisson'],calme:1,ing:[['Filet de colin',200,'g'],['Riz cru',55,'g'],['Courgettes',200,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Omelette aux herbes, mâche, pommes de terre vapeur',kcal:460,p:30,tags:['oeuf'],calme:1,ing:[['Œufs',3,'u'],['Mâche',80,'g'],['Pommes de terre',200,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Poulet rôti, purée à l\'huile d\'olive, épinards',kcal:520,p:45,tags:['viande'],calme:1,ing:[['Blanc de poulet',180,'g'],['Pommes de terre',230,'g'],['Épinards',150,'g'],['Huile d\'olive',10,'g']]},
+    {n:'Saumon vapeur, quinoa, haricots verts',kcal:540,p:40,tags:['poisson'],calme:1,ing:[['Pavé de saumon',130,'g'],['Quinoa cru',55,'g'],['Haricots verts',200,'g']]},
+    {n:'Velouté de courgette, blanc de poulet, riz',kcal:450,p:38,tags:['viande'],calme:1,ing:[['Courgettes',300,'g'],['Blanc de poulet',150,'g'],['Riz cru',45,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Lentilles corail, riz, carottes et coriandre',kcal:520,p:22,tags:[],ing:[['Lentilles corail crues',60,'g'],['Riz cru',45,'g'],['Carottes',180,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Tofu grillé, riz, épinards, sésame',kcal:460,p:30,tags:[],calme:1,ing:[['Tofu ferme',200,'g'],['Riz cru',55,'g'],['Épinards',180,'g'],['Graines de sésame',10,'g']]},
+    {n:'Crevettes sautées, nouilles de riz, carottes',kcal:470,p:38,tags:['poisson','sansEcailles'],calme:1,ing:[['Crevettes décortiquées',200,'g'],['Nouilles de riz crues',55,'g'],['Carottes',150,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Œufs durs, taboulé de quinoa, concombre, feta',kcal:500,p:30,tags:['lactose','oeuf'],calme:1,ing:[['Œufs',3,'u'],['Quinoa cru',50,'g'],['Concombre',150,'g'],['Feta',40,'g']]},
+    {n:'Dinde, polenta crémeuse, carottes fondantes',kcal:480,p:42,tags:['viande'],calme:1,ing:[['Escalope de dinde',170,'g'],['Polenta crue',55,'g'],['Carottes',180,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Cabillaud, pommes de terre, fenouil braisé',kcal:450,p:40,tags:['poisson'],calme:1,ing:[['Dos de cabillaud',190,'g'],['Pommes de terre',200,'g'],['Fenouil',150,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Cabillaud, patate douce écrasée, épinards',kcal:480,p:40,tags:['poisson'],calme:1,ing:[['Dos de cabillaud',190,'g'],['Patate douce',220,'g'],['Épinards',150,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Saumon, quinoa, aubergine rôtie',kcal:560,p:40,tags:['poisson'],ing:[['Pavé de saumon',140,'g'],['Quinoa cru',55,'g'],['Aubergine',180,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Œufs, brocolis vapeur, pommes de terre',kcal:470,p:29,tags:['oeuf'],ing:[['Œufs',3,'u'],['Brocolis',180,'g'],['Pommes de terre',200,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Truite au four, pommes de terre, haricots verts',kcal:500,p:40,tags:['poisson'],calme:1,ing:[['Filet de truite',170,'g'],['Pommes de terre',200,'g'],['Haricots verts',180,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Colin, quinoa, carottes fondantes',kcal:460,p:39,tags:['poisson'],calme:1,ing:[['Filet de colin',190,'g'],['Quinoa cru',50,'g'],['Carottes',180,'g'],['Huile d\'olive',8,'g']]}
+  ],
+  col:[
+    {n:'Skyr nature et cannelle',kcal:150,p:20,tags:['lactose'],calme:1,ing:[['Skyr nature',200,'g'],['Cannelle',1,'pincée']]},
+    {n:'Deux œufs durs',kcal:155,p:13,tags:['oeuf'],calme:1,ing:[['Œufs',2,'u']]},
+    {n:'Amandes et une orange',kcal:220,p:7,tags:[],calme:1,ing:[['Amandes',25,'g'],['Orange',1,'u']]},
+    {n:'Shaker de whey à l\'eau',kcal:120,p:25,tags:['lactose'],calme:1,ing:[['Whey',30,'g'],['Eau',300,'ml']]},
+    {n:'Fromage blanc et noix',kcal:200,p:18,tags:['lactose'],calme:1,ing:[['Fromage blanc 0 %',200,'g'],['Noix',15,'g']]},
+    {n:'Thon et galettes de riz',kcal:190,p:25,tags:['poisson'],calme:1,ing:[['Thon au naturel',100,'g'],['Galettes de riz',2,'u']]},
+    {n:'Blanc de dinde et concombre',kcal:130,p:22,tags:['viande'],calme:1,ing:[['Blanc de dinde',110,'g'],['Concombre',150,'g']]},
+    {n:'Amandes et carré de chocolat noir',kcal:200,p:6,tags:['lactose'],ing:[['Amandes',20,'g'],['Chocolat noir 85 %',15,'g']]},
+    {n:'Yaourt grec et framboises',kcal:180,p:19,tags:['lactose'],calme:1,ing:[['Yaourt grec',200,'g'],['Framboises',100,'g']]},
+    {n:'Beurre de cacahuète sur galettes de riz',kcal:215,p:8,tags:[],calme:1,ing:[['Galettes de riz',2,'u'],['Beurre de cacahuète',22,'g']]},
+    {n:'Noix de pécan et eau de coco',kcal:210,p:4,tags:[],calme:1,ing:[['Noix de pécan',25,'g'],['Eau de coco',150,'ml']]},
+    {n:'Yaourt grec, myrtilles et amandes',kcal:250,p:20,tags:['lactose'],calme:1,ing:[['Yaourt grec',200,'g'],['Myrtilles',80,'g'],['Amandes',12,'g']]}
+  ]
+};
+
+// Mode « digestion sensible » : substitutions à calories équivalentes.
+// On ne rabote pas les portions — cela fausserait les kcal affichées.
+// [nom de remplacement, facteur de quantité pour rester isocalorique]
+const SUBST_DIGESTION = {
+  'Brocolis':               ['Haricots verts', 1],
+  'Aubergine':              ['Courgettes', 1],
+  'Fenouil':                ['Carottes', 0.8],
+  'Pois chiches cuits':     ['Quinoa cru', 0.45],
+  'Lentilles corail crues': ['Quinoa cru', 1],
+  'Patate douce':           ['Pommes de terre', 1.1],
+  'Ratatouille':            ['Ratatouille sans oignon ni ail', 1],
+  'Pain complet':           ['Pain au levain d\'épeautre', 1],
+  'Boulgour cru':           ['Quinoa cru', 0.95],
+  'Semoule complète crue':  ['Polenta crue', 1],
+  'Tortilla complète':      ['Tortilla de maïs', 1],
+  'Lait demi-écrémé':       ['Lait sans lactose', 1],
+  'Amandes':                ['Noix', 0.92],
+  'Myrtilles':              ['Fraises', 1.7],
+  'Framboises':             ['Fraises', 1.6],
+  'Avocat':                 ['Noix', 0.25]
+};
+function ingredients(m){
+  if(!(P.regime||[]).includes('digestion')) return m.ing;
+  return m.ing.map(([nm,q,u])=>{
+    const sub = SUBST_DIGESTION[nm];
+    return sub ? [sub[0], q*sub[1], u] : [nm,q,u];
+  });
+}
+
+function filtreRepas(liste, soir){
+  const r = P.regime||[];
+  const a = (m,t) => m.tags.indexOf(t) >= 0;
+  let out = liste.filter(m=>{
+    if(r.includes('sansViande')  && a(m,'viande')) return false;
+    if(r.includes('sansPoisson') && a(m,'poisson')) return false;
+    if(r.includes('vegetarien')  && (a(m,'viande')||a(m,'poisson'))) return false;
+    if(r.includes('vegan')       && (a(m,'viande')||a(m,'poisson')||a(m,'lactose')||a(m,'oeuf'))) return false;
+    // Cacher : pas de porc, pas de crustacé ni de poisson sans écailles,
+    // et jamais viande et produit laitier dans le même repas.
+    if(r.includes('cacher') && (a(m,'porc') || a(m,'sansEcailles') || (a(m,'viande') && a(m,'lactose')))) return false;
+    // Halal : pas de porc ni d'alcool. Les crustacés sont écartés par prudence,
+    // l'école hanafite ne les autorisant pas là où les autres écoles les admettent.
+    if(r.includes('halal') && (a(m,'porc') || a(m,'alcool') || a(m,'sansEcailles'))) return false;
+    if(r.includes('sansLactose') && a(m,'lactose')) return false;
+    if(r.includes('sansGluten')  && a(m,'gluten')) return false;
+    return true;
+  });
+  if(soir){
+    const calmes = out.filter(m=>m.calme);
+    if(calmes.length>=3) out = calmes;
+  }
+  return out.length ? out : liste;
+}
+
+// générateur pseudo-aléatoire reproductible
+function rng(seed){ let s = seed*9301+49297; return ()=>{ s=(s*9301+49297)%233280; return s/233280; }; }
+
+const PART  = {pdj:.25, col:.12, dej:.35, din:.28};
+const SLOTS = [['pdj','Petit-déjeuner',false],['col','Collation',false],['dej','Déjeuner',false],['din','Dîner',true]];
+const SCALE_MIN = .6, SCALE_MAX = 2.0;
+
+function menuDuJour(idx){
+  const c = calculs(P);
+  const rnd = rng(menuSeed*1000 + idx*37 + 7);
+  const J = P.jeune || {};
+
+  // tirage des plats (fait pour tous, même jeûnés, pour garder le tirage stable)
+  const out = SLOTS.map(([k,lbl,soir])=>{
+    const l = filtreRepas(REPAS[k], soir);
+    return {key:k, lbl, m:l[Math.floor(rnd()*l.length)], scale:0, jeune:!!J[k]};
+  });
+
+  const actifs = out.filter(o=>!o.jeune);
+  const somme  = actifs.reduce((t,o)=>t+PART[o.key],0);
+
+  if(somme>0){
+    // répartition initiale : la part du repas jeûné est redistribuée au prorata
+    actifs.forEach(o=>{
+      const vise = c.cible * (PART[o.key]/somme);
+      o.scale = Math.min(SCALE_MAX, Math.max(SCALE_MIN, vise/o.m.kcal));
+    });
+    // deux passes pour absorber le reliquat dans la marge encore disponible
+    for(let i=0;i<2;i++){
+      const tot = actifs.reduce((t,o)=>t+o.m.kcal*o.scale,0);
+      const reste = c.cible - tot;
+      if(Math.abs(reste) < 5) break;
+      const marges = actifs.map(o=>({o, m: reste>0 ? (SCALE_MAX-o.scale)*o.m.kcal
+                                                   : (o.scale-SCALE_MIN)*o.m.kcal}));
+      const totalMarge = marges.reduce((t,x)=>t+x.m,0);
+      if(totalMarge <= 0.5) break;
+      marges.forEach(x=>{ x.o.scale += (reste*(x.m/totalMarge))/x.o.m.kcal; });
+    }
+  }
+
+  const tot  = Math.round(out.reduce((t,o)=>t+o.m.kcal*o.scale,0));
+  const prot = Math.round(out.reduce((t,o)=>t+o.m.p*o.scale,0));
+  return {out, tot, prot, cible:c, nbJeune: out.length-actifs.length, manque: c.cible-tot};
+}
+
+function qte(base, scale, unit){
+  const v = base*scale;
+  if(unit==='u') return (Math.round(v*2)/2).toString().replace('.5',' ½').replace(/^0 ½$/,'½') + ' ';
+  if(unit==='pincée') return '1 ';
+  if(v>=40) return Math.round(v/5)*5 + ' ';
+  return Math.round(v) + ' ';
+}
+
+/* ============================================================
+   RUBAN (signature)
+   ============================================================ */
+function drawTape(){
+  const svg = document.getElementById('tape');
+  const W=360, H=44, pad=6;
+  const sem = P ? semaineCourante() : 1;
+  let s = `<line class="base" x1="0" y1="${H-9}" x2="${W}" y2="${H-9}"/>`;
+  for(let i=0;i<=48;i++){
+    const x = pad + (W-2*pad)*i/48;
+    const maj = i%4===0;
+    const h = maj? 20 : (i%2===0?12:7);
+    s += `<line class="${maj?'maj':'min'}" x1="${x.toFixed(1)}" y1="${H-9}" x2="${x.toFixed(1)}" y2="${(H-9-h).toFixed(1)}"/>`;
+    if(maj && i<48){
+      const wk = i/4+1;
+      const cx = pad + (W-2*pad)*(i+2)/48;
+      s += `<text class="num ${wk===sem?'on':''}" x="${cx.toFixed(1)}" y="${H-1}" text-anchor="middle">${wk}</text>`;
+    }
+  }
+  const cx = pad + (W-2*pad)*((sem-1)*4+2)/48;
+  s += `<polygon class="cur" points="${cx-5},4 ${cx+5},4 ${cx},13"/>`;
+  svg.innerHTML = s;
+}
+
+/* ============================================================
+   VUES
+   ============================================================ */
+function h(html){ return html; }
+
+function vueProfil(){
+  const c = P ? calculs(P) : null;
+  const seg = (name,opts,cur)=>`<div class="seg">${opts.map(([v,l])=>`<button data-set="${name}" data-val="${v}" aria-pressed="${cur===v}">${l}</button>`).join('')}</div>`;
+  return `
+  <h2 class="sect-title">Toi</h2>
+  <div class="card">
+    <label class="f"><span>Sexe</span>${seg('sexe',[['h','Homme'],['f','Femme']],P.sexe)}</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <label class="f"><span>Âge</span><input type="number" inputmode="numeric" data-num="age" value="${P.age}"></label>
+      <label class="f"><span>Poids (kg)</span><input type="number" inputmode="decimal" step="0.1" data-num="poids" value="${P.poids}"></label>
+      <label class="f"><span>Taille (cm)</span><input type="number" inputmode="numeric" data-num="taille" value="${P.taille}"></label>
+      <label class="f"><span>Début du programme</span><input type="date" data-txt="depart" value="${P.depart}"></label>
+    </div>
+    <label class="f"><span>Journée type</span>${seg('activite',Object.keys(FACT_ACT).map(k=>[k,LBL_ACT[k].split(' ')[0]]),P.activite)}</label>
+    <div class="note" id="noteAct">${LBL_ACT[P.activite]} — facteur ×${FACT_ACT[P.activite]}</div>
+  </div>
+
+  <h2 class="sect-title">Rythme visé</h2>
+  <div class="card">
+    ${seg('rythme',Object.keys(RYTHME).map(k=>[k,LBL_RYT[k]]),P.rythme)}
+    <div class="note" id="noteRyt">Perte estimée : <b>${c.perteSem.toFixed(2)} kg / semaine</b> — soit environ <b>${c.projection} kg</b> au bout des 12 semaines.
+    ${c.brid?'<br><b style="color:var(--rouge)">Déficit bridé</b> : descendre plus bas ferait perdre du muscle. Le rythme réel sera un peu plus lent que demandé.':''}</div>
+  </div>
+
+  <h2 class="sect-title">Disponibilités réelles</h2>
+  <div class="card">
+    <div class="note" style="margin:0 0 12px">Trois créneaux tenus valent mieux que cinq abandonnés.</div>
+    ${P.dispo.map((d,i)=>`
+      <div class="day">
+        <div class="day-top">
+          <div class="day-name">${JOURS[i]}</div>
+          <button class="tog" data-day="${i}" aria-pressed="${d.on}" aria-label="Activer ${JOURS[i]}"></button>
+        </div>
+        ${d.on?`<div class="day-body">
+          <select data-daysel="creneau" data-i="${i}">
+            <option value="matin" ${d.creneau==='matin'?'selected':''}>Tôt le matin</option>
+            <option value="midi" ${d.creneau==='midi'?'selected':''}>Pause du midi</option>
+            <option value="soir" ${d.creneau==='soir'?'selected':''}>Le soir</option>
+          </select>
+          <select data-daysel="minutes" data-i="${i}">
+            ${[25,40,50,55,70].map(m=>`<option value="${m}" ${d.minutes===m?'selected':''}>${m} min</option>`).join('')}
+          </select>
+        </div>`:''}
+      </div>`).join('')}
+  </div>
+
+  <h2 class="sect-title">Alimentation</h2>
+  <div class="card">
+    <div class="chips">
+      ${[['sansViande','Sans viande'],['sansPoisson','Sans poisson'],['vegetarien','Végétarien'],['vegan','Vegan'],['cacher','Cacher'],['halal','Halal'],['sansLactose','Sans lactose'],['sansGluten','Sans gluten'],['digestion','Digestion sensible']].map(([v,l])=>
+        `<button class="chip" data-reg="${v}" aria-pressed="${(P.regime||[]).includes(v)}">${l}</button>`).join('')}
+    </div>
+    <button class="lien-infos" data-infos="regime">${infos.regime?'Masquer les infos':'Infos sur les régimes'}</button>
+    ${infos.regime?`
+    <div class="note" style="margin-top:10px"><b>Végétarien</b> écarte viande et poisson, garde œufs et laitages. <b>Vegan</b> retire en plus tout produit animal.</div>
+    <div class="note"><b>Cacher</b> : pas de porc, uniquement les poissons à nageoires et écailles — donc ni crustacés, ni fruits de mer —, et jamais viande et produit laitier dans un même repas. L'application trie les catégories d'aliments ; la <b>cacherout d'un produit dépend aussi de son abattage et de sa certification</b>, que je ne peux pas vérifier — attention notamment aux fromages, dont la présure est souvent animale.</div>
+    <div class="note"><b>Halal</b> : pas de porc ni d'alcool, y compris en cuisson. J'écarte aussi les crustacés par prudence : les écoles chaféite, malikite et hanbalite autorisent tous les animaux marins, mais l'école hanafite se limite aux poissons. Là encore, la viande doit être issue d'un <b>abattage rituel</b> que l'application ne peut pas garantir.</div>
+    <div class="note" style="margin-top:10px"><b>« Digestion sensible »</b> remplace les aliments les plus fermentescibles par des équivalents de même valeur calorique : brocolis → haricots verts, patate douce → pommes de terre, lentilles → quinoa, blé → épeautre au levain ou maïs, ratatouille → sans oignon ni ail. À activer seulement si ton ventre gonfle en journée — sinon tu perds des fibres et de la variété pour rien.</div>`:''}
+  </div>
+
+  <h2 class="sect-title">Matériel</h2>
+  <div class="card">
+    ${seg('equip',[['salle','Salle'],['accessoires','Petits accessoires'],['pdc','Poids du corps']],P.equip)}
+    ${P.equip==='accessoires' ? `
+      <span class="eyebrow" style="display:block;margin:16px 0 8px">Ce que tu as chez toi</span>
+      <div class="chips">
+        ${ACCESSOIRES.map(([v,l])=>`<button class="chip" data-acc="${v}" aria-pressed="${aDispo(v)}">${l}</button>`).join('')}
+      </div>
+      ${(P.accessoires||[]).length ? ''
+        : `<div class="note" style="background:var(--ambre-pale)">Aucun accessoire coché : le programme est identique à la version poids du corps.</div>`}
+    ` : ''}
+  </div>
+
+
+  <h2 class="sect-title">Repères techniques</h2>
+  <div class="card">
+    <div class="eyebrow" style="color:var(--rouge)">Les trois erreurs qui font sortir le ventre</div>
+    <div class="rule"><div class="m">✕</div><div class="tx">Sit-ups et crunchs en séries longues<small>Répétés, ils distendent la ligne blanche et font ressortir le ventre en permanence.</small></div></div>
+    <div data-anim="errCrunch"></div>
+    <div class="rule"><div class="m">✕</div><div class="tx">Relevés de jambes tendues au sol<small>Le bas du dos décolle, la pression pousse la paroi vers l'avant.</small></div></div>
+    <div data-anim="errJambesTendues"></div>
+    <div class="rule"><div class="m">✕</div><div class="tx">Planches tenues jusqu'à l'échec<small>Le bassin s'affaisse et le ventre pousse. Mieux vaut 15 s de planche RKC intense.</small></div></div>
+    <div data-anim="errPlanche"></div>
+    <div class="note">Trait vert : la paroi reste plate ou rentre. Trait rouge : elle pousse en pointe. C'est le seul critère qui sert à trier un exercice.</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Ce qui épaissit la taille</div>
+    <div class="rule"><div class="m">✕</div><div class="tx">Flexions latérales chargées, rotations russes lourdes<small>Elles hypertrophient les obliques : taille plus large, silhouette plus carrée.</small></div></div>
+    <div class="rule"><div class="m">✕</div><div class="tx">Blocage respiratoire systématique sur charges maximales<small>Excellent pour la force, mais sur 12 semaines de définition : charges modérées, 6 à 12 répétitions, pas de record.</small></div></div>
+    <div class="rule"><div class="m">✕</div><div class="tx">Pousser vers le bas pendant l'effort<small>La pression doit être contenue, jamais expulsée vers le bas et l'avant.</small></div></div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Le vacuum, mode d'emploi</div>
+    <div data-anim="vacuum"></div>
+    <div style="font-size:14px;line-height:1.6">
+      À jeun, à quatre pattes ou debout. Expire tout l'air jusqu'au bout. Poumons vides, aspire le ventre vers le haut et vers l'intérieur, sous les côtes — sans inspirer. Tiens 10 à 15 secondes, relâche, recommence 5 fois.<br><br>
+      C'est le seul exercice qui cible directement le transverse. Il ne brûle pas de graisse : il change le tonus de repos de la paroi, donc l'aspect du ventre au quotidien.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow" style="color:var(--rouge)">Avant de forcer : le test du diastasis</div>
+    <div style="font-size:14px;line-height:1.6;margin-top:8px">
+      Allongé sur le dos, genoux pliés. Soulève légèrement la tête et pose les doigts à plat, verticalement, au-dessus puis en dessous du nombril.<br><br>
+      Si tu sens un écart de plus de deux doigts avec un fond mou, ou si le ventre forme une crête : il y a un écartement des grands droits. Dans ce cas, <b>ni crunch ni roue abdominale</b> — uniquement transverse et respiration, et un avis de kinésithérapeute.
+    </div>
+    <div class="note" style="color:var(--rouge);background:var(--rouge-pale)">Consulte aussi en cas de : bosse ou douleur à l'aine ou au nombril à l'effort (hernie), ballonnement récent et persistant sans cause, douleur lombaire qui s'installe, tour de taille qui augmente à poids stable.</div>
+  </div>
+
+  <div class="card flat">
+    <button class="cta ghost" id="btnInstall" data-act="install" style="display:${promptInstall?'block':'none'};margin-bottom:10px">Installer sur l'écran d'accueil</button>
+    <button class="cta danger" data-act="reset">Effacer toutes mes données</button>
+  </div>
+  <div style="text-align:center;font-size:11.5px;color:var(--encre3);padding:6px 20px 0;line-height:1.5">
+    Ces calculs sont des estimations statistiques, pas un avis médical. En cas de pathologie, de grossesse récente, de traitement en cours ou de douleur persistante, parles-en à un médecin ou à un kinésithérapeute avant de commencer.
+  </div>`;
+}
+
+function vueSemaine(){
+  const c = calculs(P);
+  const ph = phase();
+  const plan = buildSemaine();
+  const auj = (new Date().getDay()+6)%7;
+  const heure = {matin:'~6 h 30', midi:'~12 h 30', soir:'~19 h 30'};
+
+  return `
+  <div class="card">
+    <div class="eyebrow">Phase ${ph.n} — ${ph.nom}</div>
+    <div style="margin-top:6px;font-size:14px;line-height:1.5">${ph.txt}</div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Cible du jour</div>
+    <div class="bignum" style="margin-top:6px">${c.cible.toLocaleString('fr-FR')}<span style="font-size:15px;font-weight:400;letter-spacing:0"> kcal</span></div>
+    <div style="font-size:13px;color:var(--encre2);margin-top:4px">Dépense estimée ${c.tdee.toLocaleString('fr-FR')} kcal · déficit ${c.deficit} kcal</div>
+    <div class="macro-row">
+      <div class="macro"><div class="k">Protéines</div><div class="v">${c.prot}<span class="u"> g</span></div></div>
+      <div class="macro"><div class="k">Lipides</div><div class="v">${c.lip}<span class="u"> g</span></div></div>
+      <div class="macro"><div class="k">Glucides</div><div class="v">${c.glu}<span class="u"> g</span></div></div>
+    </div>
+    <div class="macro-row">
+      <div class="macro"><div class="k">Fibres</div><div class="v">${c.fibres}<span class="u"> g</span></div></div>
+      <div class="macro"><div class="k">Eau</div><div class="v">${c.eau}<span class="u"> L</span></div></div>
+      <div class="macro"><div class="k">Pas / jour</div><div class="v">${(c.pas/1000)}<span class="u"> k</span></div></div>
+    </div>
+  </div>
+
+  <h2 class="sect-title">Ta semaine, à partir d'aujourd'hui</h2>
+  ${Array.from({length:7},(_,n)=>(auj+n)%7).map((i,rang)=>{
+    const d = plan[i];
+    const key = 'd'+i, open = openSess[key];
+    const j = menuDuJour(i);                        // le menu reste attaché au jour, pas au rang
+    const titre = d.blocs.length ? d.blocs.map(b=>b.titre).join(' + ') : 'Repos actif';
+    const parCle = k => j.out.find(o=>o.key===k);
+
+    // déroulé chronologique de la journée
+    const seance = d.blocs.length ? {type:'seance'} : null;
+    const H = {matin:'7 h 00', midi:'12 h 30', soir:'19 h 30'};
+    const seq = [{t:'6 h 30', type:'marche'}];
+    if(seance && d.creneau==='matin') seq.push({t:H.matin, type:'seance'});
+    seq.push({t:'8 h 00', type:'repas', k:'pdj'});
+    if(seance && d.creneau==='midi') seq.push({t:H.midi, type:'seance'});
+    seq.push({t:'13 h 15', type:'repas', k:'dej'});
+    seq.push({t:'16 h 30', type:'repas', k:'col'});
+    if(seance && d.creneau==='soir') seq.push({t:H.soir, type:'seance'});
+    seq.push({t:'20 h 30', type:'repas', k:'din'});
+
+    const blocSeance = () => `
+      <div class="bloc-phys">
+      ${d.blocs.map(b=>`
+        <div class="sous-titre">${b.titre}</div>
+        ${b.ex.map(e=>`<div class="ex"><div class="nm">${e.nm}${e.tip?`<div class="tip">${e.tip}</div>`:''}${b.type!=='cardio'?`<span class="liens">${e.mw?`<a class="vid mw" href="${e.mw}" target="_blank" rel="noopener noreferrer">MuscleWiki</a>`:''}<a class="vid" href="${lienVideo(e.nm)}" target="_blank" rel="noopener noreferrer">YouTube</a></span>`:''}</div><div class="sr">${e.sr}</div></div>${e.anim?`<div data-anim="${e.anim}"></div>`:''}`).join('')}
+      `).join('')}
+      <button class="demarrer" data-seance="${i}">Démarrer la séance guidée</button>
+      </div>
+      <div class="note"><b>Règle non négociable :</b> pendant chaque exercice, le ventre doit rentrer en expirant. S'il se bombe vers l'avant en cône, si tu bloques ta respiration ou si le bas du dos se creuse — arrête la série et régresse.</div>`;
+
+    const blocRepas = (o) => o.jeune ? `
+      <div class="repas off">
+        <div class="repas-h"><span class="lbl">Jeûne</span>
+          <button class="jeune-chip on" data-jeune="${o.key}" aria-pressed="true">Jeûné</button></div>
+        <div style="font-size:12.5px;color:var(--encre3)">Repas sauté — ses calories sont réparties sur les autres.</div>
+      </div>` : `
+      <div class="repas">
+        <div class="repas-h"><span class="kc">${Math.round(o.m.kcal*o.scale)} kcal · ${Math.round(o.m.p*o.scale)} g P</span>
+          <button class="jeune-chip valide ${estValide(i,o.key)?'on':''}" data-valide="${i}|${o.key}" aria-pressed="${estValide(i,o.key)}">${estValide(i,o.key)?'✓ Pris':'Valider'}</button>
+          <button class="jeune-chip" data-jeune="${o.key}" aria-pressed="false">Jeûner</button></div>
+        <div class="meal-n">${o.m.n}</div>
+        ${ingredients(o.m).map(([nm,q,u])=>`<div class="ing"><span>${nm}</span><span class="q">${qte(q,o.scale,u)}${u==='u'||u==='pincée'?'':u}</span></div>`).join('')}
+        ${o.scale>1.55?`<div class="note">Portion nettement augmentée pour absorber le report. Si elle passe mal, scinde-la en deux prises rapprochées.</div>`:''}
+      </div>`;
+
+    return `
+    <div class="sess ${rang===0?'today':''} ${d.blocs.length?'':'rest'}">
+      <button class="sess-head" data-toggle="${key}" aria-expanded="${!!open}">
+        <div class="sess-day">${d.court}</div>
+        <div class="sess-t">
+          <div class="n">${titre}</div>
+          <div class="m">${j.tot.toLocaleString('fr-FR')} kcal · ${j.prot} g P${rang===0?' · aujourd\'hui':''}</div>
+        </div>
+        <div class="caret"></div>
+      </button>
+      ${open?`<div class="sess-body">
+        ${j.nbJeune?`<div class="note" style="margin-top:0">${j.nbJeune} repas jeûné${j.nbJeune>1?'s':''} : calories reportées sur les autres, pour tous les jours.</div>`:''}
+        ${j.manque>120 && j.tot>0?`<div class="note" style="background:var(--ambre-pale)"><b>Il manque ${Math.round(j.manque)} kcal.</b> Les repas restants ne peuvent pas absorber tout le report sans devenir irréalistes.</div>`:''}
+        ${j.tot>0 && j.tot<c.plancher?`<div class="note" style="background:var(--rouge-pale)">Le total descend sous le plancher de ${c.plancher.toLocaleString('fr-FR')} kcal calculé pour toi. Un déficit plus creux fait perdre du muscle, pas plus de graisse.</div>`:''}
+        ${seq.map(e=>{
+          if(e.type==='marche') return `
+            <div class="etape marche">
+              <div class="etape-h"><span class="h">${e.t}</span><span class="q">Marche rapide à jeun</span></div>
+              <div class="bloc-phys"><div class="ex"><div class="nm">Avant le petit-déjeuner<div class="tip">Allure conversationnelle. Un café noir 30 minutes avant si tu veux.${d.creneau==='matin'&&d.blocs.length?' Enchaîne ensuite sur la séance.':''}</div></div><div class="sr">20–30 min</div></div></div>
+            </div>`;
+          if(e.type==='seance') return `
+            <div class="etape seance">
+              <div class="etape-h"><span class="h">${e.t}</span><span class="q">Séance</span></div>
+              ${blocSeance()}
+            </div>`;
+          const o = parCle(e.k);
+          const nom = {pdj:'Petit-déjeuner', dej:'Déjeuner', col:'Collation', din:'Dîner'}[e.k];
+          return `
+            <div class="etape repas-etape">
+              <div class="etape-h"><span class="h">${e.t}</span><span class="q">${nom}</span></div>
+              ${blocRepas(o)}
+            </div>`;
+        }).join('')}
+      </div>`:''}
+    </div>`;
+  }).join('')}
+
+  <button class="cta ghost" data-act="shuffle" style="margin:4px 0 14px">Regénérer les menus de la semaine</button>
+
+  <h2 class="sect-title">Astuces</h2>
+  <div class="card">
+    <div class="eyebrow" style="margin-bottom:4px">Le rythme de la journée</div>
+    <div class="rule ok"><div class="m">1</div><div class="tx"><b>Marche rapide à jeun — 20 à 30 min</b>
+      <small>Au réveil, avant le petit-déjeuner, allure où l'on peut encore parler. À jeun, l'insuline est basse et le corps puise davantage dans les graisses <b>pendant</b> l'effort. Attention toutefois : sur 24 heures, c'est le bilan calorique qui décide de ce que tu perds, pas le moment de la séance. Le vrai bénéfice est pratique — c'est facile, ça ne pèse pas sur l'estomac, et ça protège les 10 000 pas quand la journée dérape.</small></div></div>
+    <div class="rule ok"><div class="m">2</div><div class="tx"><b>Café noir 30 min avant la marche</b>
+      <small>1 à 3 mg de caféine par kg, soit 1 à 2 tasses pour toi. Effort perçu plus faible, oxydation des graisses légèrement augmentée. Sans sucre ni lait : les calories ajoutées annulent l'intérêt. Si le café à jeun te brûle l'estomac, bois un grand verre d'eau d'abord.</small></div></div>
+    <div class="rule ok"><div class="m">3</div><div class="tx"><b>Thé vert l'après-midi, café coupé après 14 h</b>
+      <small>La demi-vie de la caféine est de 5 à 6 heures : un café à 16 h en laisse encore la moitié active à 22 h, et le sommeil court est ce qui fait le plus dérailler un déficit. Le thé vert de 16 h occupe le geste du grignotage pour presque zéro calorie.</small></div></div>
+    <div class="rule ok"><div class="m">4</div><div class="tx"><b>Thé et café à distance des repas riches en fer</b>
+      <small>Les tanins réduisent l'absorption du fer végétal. Laisse une heure autour des repas à base de lentilles, épinards ou tofu.</small></div></div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow" style="margin-bottom:10px">Envies sucrées et grignotage</div>
+    <div class="note" style="margin:0 0 10px">D'abord distinguer les deux. <b>La faim accepte n'importe quel aliment</b> — si une pomme ou des œufs ne te tentent pas, ce n'est pas de la faim, c'est une envie. Une envie dure 10 à 20 minutes et redescend seule.</div>
+    <div class="rule ok"><div class="m">✓</div><div class="tx">Ne pas en avoir chez soi<small>Le contrôle de l'environnement bat la volonté à tous les coups. C'est la seule décision à prendre, et elle se prend au supermarché, pas à 22 h devant le placard.</small></div></div>
+    <div class="rule ok"><div class="m">✓</div><div class="tx">Attendre 10 minutes, un grand verre d'eau à la main<small>Le temps que l'envie retombe. Si après 10 minutes tu la veux toujours, prends-en une portion normale, assis, sans écran.</small></div></div>
+    <div class="rule ok"><div class="m">✓</div><div class="tx">Marcher 10 minutes ou se brosser les dents<small>Deux gestes banals qui coupent une envie de façon fiable. Le second change le goût en bouche et clôt symboliquement le repas.</small></div></div>
+    <div class="rule ok"><div class="m">✓</div><div class="tx">${c.prot} g de protéines répartis sur la journée<small>Le déterminant numéro un de la satiété. La plupart des craquages du soir viennent d'un déjeuner trop pauvre en protéines.</small></div></div>
+    <div class="rule ok"><div class="m">✓</div><div class="tx">Dormir 7 à 8 heures<small>Une seule nuit courte augmente nettement l'appétit et oriente les envies vers le sucré. C'est un levier plus puissant que n'importe quelle astuce de volonté.</small></div></div>
+    <div class="rule ok"><div class="m">✓</div><div class="tx">Une alternative volumineuse plutôt qu'un interdit<small>Yaourt grec et fruits rouges avec un peu de cannelle, un carré de chocolat noir à 85 %, un thé. Le volume et l'amertume rassasient là où un « non » sec fait tenir trois jours puis craquer.</small></div></div>
+    <div class="rule"><div class="m">✕</div><div class="tx">Les produits « sans sucre » aux polyols<small>Sorbitol, maltitol, xylitol : ils entretiennent le goût du sucré et ballonnent presque tout le monde. Exactement ce qu'on cherche à éviter ici.</small></div></div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Tous les jours, sans exception</div>
+    <div style="margin-top:8px;font-size:14px;line-height:1.55">
+      <b>${c.pas.toLocaleString('fr-FR')} pas.</b> L'activité non-sportive dépense souvent plus que les séances, et elle chute toute seule en déficit. C'est le paramètre à protéger consciemment.<br><br>
+      <b>Vacuum, 5 × 12 s.</b> À jeun. C'est ce qui resserre la sangle et améliore le tonus de repos du ventre.
+    </div>
+  </div>`;
+}
+
+const RAYONS = [
+  ['Viandes et poissons', ['poulet','dinde','bœuf','saumon','cabillaud','colin','truite','poisson','thon','crevettes','maquereau']],
+  ['Œufs et produits laitiers', ['œuf','skyr','yaourt','fromage blanc','lait','feta','whey']],
+  ['Protéines végétales', ['tofu','tempeh','pois chiches','lentilles']],
+  ['Féculents et céréales', ['riz','quinoa','avoine','pain','épeautre','boulgour','semoule','nouilles','polenta','maïs','pomme de terre','pommes de terre','patate douce','tortilla','galettes']],
+  ['Fruits et légumes', ['brocoli','aubergine','courgette','épinard','haricots verts','carotte','tomate','concombre','mâche','pak choï','ratatouille','fenouil','myrtille','fraise','framboise','orange','kiwi','banane','citron','avocat','olives']],
+  ['Épicerie', []]
+];
+const HORS_LISTE = ['eau','cannelle','curcuma','sel','poivre','épices'];   // pas achetés au poids
+function surLaListe(nm){ const l = nm.toLowerCase().trim(); return !HORS_LISTE.some(x=>l===x); }
+function rayon(nm){
+  const l = nm.toLowerCase();
+  for(let i=0;i<RAYONS.length-1;i++) if(RAYONS[i][1].some(m=>l.indexOf(m)>=0)) return i;
+  return RAYONS.length-1;
+}
+function qteCourse(q,u){
+  if(u==='u') return Math.ceil(q-0.15) + (Math.ceil(q-0.15)>1?' unités':' unité');
+  if(u==='ml') return q>=1000 ? (q/1000).toFixed(1).replace('.',',')+' L' : Math.round(q/10)*10+' ml';
+  if(q>=1000) return (q/1000).toFixed(1).replace('.',',')+' kg';
+  if(q>=100)  return Math.round(q/10)*10+' g';
+  return Math.round(q/5)*5+' g';
+}
+
+const DUREES = [[7,'1 sem.'],[14,'2 sem.'],[21,'3 sem.'],[30,'1 mois']];
+
+/* ============================================================
+   INVENTAIRE
+   Ce qu'on a acheté (poids réel) moins ce qu'on a consommé
+   à chaque repas validé. Alerte quand il reste moins de 3 jours.
+   ============================================================ */
+const SEUIL_JOURS = 3;
+
+function cleRepas(jour, key){
+  const d = new Date(); d.setDate(d.getDate() + ((jour - (new Date().getDay()+6)%7) + 7) % 7);
+  return d.toISOString().slice(0,10) + '|' + key;
+}
+function estValide(jour, key){ return !!((P.valides||{})[cleRepas(jour,key)]); }
+
+function stock(){ return (P.inventaire = P.inventaire || {}); }
+function cleIng(nm,u){ return nm+'|'+u; }
+
+// consommation quotidienne moyenne, calculée sur la semaine affichée
+function consoJour(){
+  const c = {};
+  for(let i=0;i<7;i++) menuDuJour(i).out.forEach(o=>{
+    if(o.jeune) return;
+    ingredients(o.m).forEach(([nm,q,u])=>{
+      if(u==='pincée' || !surLaListe(nm)) return;
+      const k = cleIng(nm,u);
+      c[k] = (c[k]||0) + q*o.scale/7;
+    });
+  });
+  return c;
+}
+// aliments en stock qui tiendront moins de SEUIL_JOURS jours
+function bientotEpuise(){
+  // ne concerne que ce qu'on suit réellement : un aliment jamais acheté n'est pas « en rupture »
+  const inv = stock(), conso = consoJour(), out = [];
+  Object.keys(inv).forEach(k=>{
+    const c = conso[k];
+    if(!c || c <= 0) return;                    // plus au menu : pas d'alerte
+    const jours = inv[k]/c;
+    if(jours < SEUIL_JOURS) out.push({k, nm:k.split('|')[0], u:k.split('|')[1], reste:inv[k], jours});
+  });
+  return out.sort((a,b)=>a.jours-b.jours);
+}
+function retireDuStock(o){
+  const inv = stock();
+  ingredients(o.m).forEach(([nm,q,u])=>{
+    if(u==='pincée' || !surLaListe(nm)) return;
+    const k = cleIng(nm,u);
+    if(inv[k] === undefined) return;                 // non suivi : on ne crée pas de dette
+    inv[k] = Math.max(0, inv[k] - q*o.scale);   // on garde le zéro : c'est lui qui déclenche l'alerte
+  });
+}
+
+function vueCourses(){
+  const n = (P.courses && P.courses.jours) || 7;
+  const coches = (P.courses && P.courses.coches) || {};
+  const agg = {};
+  let kcal = 0, repasJeunes = 0;
+  for(let i=0;i<n;i++){
+    const j = menuDuJour(i);
+    kcal += j.tot; repasJeunes += j.nbJeune;
+    j.out.forEach(o=>{
+      if(o.jeune) return;
+      ingredients(o.m).forEach(([nm,q,u])=>{
+        if(u==='pincée' || !surLaListe(nm)) return;
+        const k = nm+'|'+u;
+        if(!agg[k]) agg[k] = {nm, u, q:0};
+        agg[k].q += q*o.scale;
+      });
+    });
+  }
+  const lignes = Object.keys(agg).map(k=>({k, ...agg[k], r:rayon(agg[k].nm)}));
+  const total = lignes.length, faits = lignes.filter(l=>coches[l.k]).length;
+
+  return `
+  <div class="card">
+    <div class="eyebrow">Liste de courses</div>
+    <div style="display:flex;gap:16px;align-items:baseline;margin-top:8px">
+      <div><div class="bignum" style="font-size:30px">${total}</div><div style="font-size:11.5px;color:var(--encre3)">articles</div></div>
+      <div><div class="bignum" style="font-size:30px;color:var(--teal)">${faits}</div><div style="font-size:11.5px;color:var(--encre3)">dans le panier</div></div>
+      <div><div class="bignum" style="font-size:30px">${n}</div><div style="font-size:11.5px;color:var(--encre3)">jours couverts</div></div>
+    </div>
+    <div style="margin-top:14px">
+      <span class="eyebrow" style="display:block;margin-bottom:6px">Durée couverte</span>
+      <div class="seg">${DUREES.map(([v,l])=>`<button data-jours="${v}" aria-pressed="${n===v}">${l}</button>`).join('')}</div>
+    </div>
+    ${n>=14?`<div class="note">Sur cette durée, ne prends frais que la première semaine — congèle les protéines et achète les légumes au fur et à mesure.</div>`:''}
+  </div>
+
+  ${RAYONS.map(([titre],ri)=>{
+    const l = lignes.filter(x=>x.r===ri).sort((a,b)=>a.nm.localeCompare(b.nm,'fr'));
+    if(!l.length) return '';
+    return `<h2 class="sect-title">${titre}</h2>
+    <div class="card">
+      ${l.map(x=>`
+        <button class="course ${(P.inventaire||{})[x.k]?'ok':''}" data-achat="${x.k}" data-besoin="${Math.round(x.q)}">
+          <span class="box"></span><span class="nm">${x.nm}</span>
+          <span class="q">${(P.inventaire||{})[x.k] ? qteCourse((P.inventaire||{})[x.k], x.u)+' en stock' : qteCourse(x.q, x.u)}</span>
+        </button>`).join('')}
+    </div>`;
+  }).join('')}
+
+  <button class="cta ghost" data-act="videpanier" style="margin:6px 0 14px">Vider l'inventaire</button>
+
+  <h2 class="sect-title">Inventaire</h2>
+  ${(()=>{ const inv = stock(), cles = Object.keys(inv).sort((a,b)=>a.localeCompare(b,'fr'));
+    const alerte = bientotEpuise();
+    return `
+    <div class="card">
+      ${alerte.length?`<div class="note" style="background:var(--ambre-pale);margin-top:0">
+        <b>${alerte.length} aliment${alerte.length>1?'s':''} à racheter.</b> Il en reste moins de ${SEUIL_JOURS} jours :
+        ${alerte.slice(0,6).map(a=>a.nm+' ('+(a.reste?Math.round(a.jours*10)/10+' j':'épuisé')+')').join(', ')}${alerte.length>6?'…':''}
+      </div>`:''}
+      ${cles.length? cles.map(k=>{
+        const [nm,u] = k.split('|');
+        const jours = (()=>{ const c = consoJour()[k]; return c>0 ? (inv[k]/c) : null; })();
+        return `<div class="log-row">
+          <div class="v" style="flex:1;font-family:inherit">${nm}</div>
+          <div class="d" style="width:auto;color:${jours!==null&&jours<SEUIL_JOURS?'var(--rouge)':'var(--encre3)'}">${jours===null?'—':Math.round(jours*10)/10+' j'}</div>
+          <div class="v" style="flex:none">${qteCourse(inv[k], u)}</div>
+          <button class="del" data-vider="${k}" aria-label="Retirer">×</button>
+        </div>`;
+      }).join('') : '<div style="font-size:13.5px;color:var(--encre3);padding:8px 0">Rien en stock pour l\'instant.</div>'}
+    </div>`;
+  })()}
+
+  <div class="card flat">
+    <button class="lien-infos" data-infos="courses" style="margin:0">${infos.courses?'Masquer':'Avant de partir'}</button>
+    ${infos.courses?`<div style="font-size:14px;line-height:1.55;margin-top:10px">
+      Les poids indiqués sont ceux des aliments <b>crus et nets</b> : compte environ 10 % de plus à l'achat pour les légumes à parer et les poissons entiers. Riz, quinoa, avoine et légumineuses sont pesés secs.<br><br>
+      Achète les protéines en une fois et congèle par portions du jour : c'est le poste qui fait échouer les semaines chargées, parce que c'est le seul qu'on ne peut pas improviser.<br><br>
+      <b>L'eau de coco</b> est à garder autour de 150 ml. Au-delà de 250 ml elle apporte assez de sorbitol pour ballonner — ce serait contre-productif ici.
+    </div>`:''}
+  </div>`;
+}
+
+function vueSuivi(){
+  const photos = (journal||[]).filter(e=>e.img).sort((a,b)=>a.d.localeCompare(b.d));
+  const poids  = (journal||[]).filter(e=>e.p).sort((a,b)=>a.d.localeCompare(b.d));
+  const dP = poids.length>1 ? (poids[poids.length-1].p - poids[0].p) : null;
+  const jours = photos.length>1
+    ? Math.round((new Date(photos[photos.length-1].d) - new Date(photos[0].d))/86400000) : 0;
+
+  return `
+  <div class="card">
+    <div class="eyebrow">Photo de face</div>
+    <label class="cta" style="display:block;margin-top:14px;text-align:center">
+      Prendre ou choisir une photo
+      <input type="file" accept="image/*" capture="user" id="photoIn" style="display:none">
+    </label>
+    <div class="note">Même endroit, même lumière, même heure, debout de face et détendu — <b>sans rentrer le ventre</b>. Une fois par semaine. Les images ne quittent pas ton téléphone.</div>
+  </div>
+
+  ${photos.length? `
+  <div class="card">
+    <div class="eyebrow">${photos.length} photo${photos.length>1?'s':''}${jours?` · ${jours} jours de recul`:''}</div>
+    ${photos.length>1? `<div style="display:flex;gap:8px;margin-top:10px">
+      <figure class="ph"><img src="${photos[0].img}" alt="Première photo"><figcaption>${photos[0].d.slice(8,10)}/${photos[0].d.slice(5,7)} — départ</figcaption></figure>
+      <figure class="ph"><img src="${photos[photos.length-1].img}" alt="Dernière photo"><figcaption>${photos[photos.length-1].d.slice(8,10)}/${photos[photos.length-1].d.slice(5,7)} — aujourd'hui</figcaption></figure>
+    </div>` : `<figure class="ph" style="margin-top:10px"><img src="${photos[0].img}" alt="Photo"><figcaption>${photos[0].d.slice(8,10)}/${photos[0].d.slice(5,7)}</figcaption></figure>`}
+  </div>
+
+  <h2 class="sect-title">Toutes les prises</h2>
+  <div class="card">
+    <div class="galerie">
+      ${[...photos].reverse().map(e=>`
+        <figure class="ph mini">
+          <img src="${e.img}" alt="${e.d}">
+          <figcaption>${e.d.slice(8,10)}/${e.d.slice(5,7)}</figcaption>
+          <button class="del-photo" data-delimg="${e.d}" aria-label="Supprimer">×</button>
+        </figure>`).join('')}
+    </div>
+  </div>` : ''}
+
+  <h2 class="sect-title">Poids, si tu veux</h2>
+  <div class="card">
+    <div style="display:flex;gap:10px;align-items:flex-end">
+      <label class="f" style="margin:0;flex:1"><span>Poids (kg)</span><input type="number" inputmode="decimal" step="0.1" id="inP" placeholder="${P.poids}"></label>
+      <button class="cta" data-act="log" style="width:auto;padding:12px 20px">Noter</button>
+    </div>
+    ${dP!==null?`<div class="note"><b>${dP>0?'+':''}${dP.toFixed(1)} kg</b> depuis la première mesure.</div>`:''}
+    ${poids.length>1? spark(poids.map(e=>e.p),'#1C6E68') : ''}
+    ${poids.length? `<div style="margin-top:10px">${[...poids].reverse().slice(0,6).map(e=>`
+      <div class="log-row"><div class="d">${e.d.slice(8,10)}/${e.d.slice(5,7)}</div>
+      <div class="v">${e.p.toFixed(1)} kg</div>
+      <button class="del" data-del="${e.d}" aria-label="Supprimer">×</button></div>`).join('')}</div>` : ''}
+  </div>
+
+  <div class="card flat">
+    <div class="eyebrow">Comment lire tes photos</div>
+    <div style="font-size:14px;line-height:1.55;margin-top:8px">
+      Ne compare pas deux semaines consécutives : le changement y est invisible et tu conclurais à tort que rien ne bouge. <b>Compare la première et la dernière</b>, c'est ce que l'app affiche côte à côte.<br><br>
+      Regarde en priorité le contour de la taille et la ligne sous le nombril, pas le relief des abdominaux : c'est le tour de taille qui bouge en premier.<br><br>
+      L'éclairage change tout. Une lumière venant du haut creuse les reliefs et donne l'illusion d'un progrès ; la même photo prise face à une fenêtre donnera l'impression inverse. D'où l'intérêt du même endroit à la même heure.
+    </div>
+  </div>`;
+}
+
+function spark(vals,color){
+  const W=320,H=100,pad=14;
+  const min=Math.min(...vals), max=Math.max(...vals);
+  const span = (max-min)||1;
+  const pts = vals.map((v,i)=>{
+    const x = pad + (W-2*pad)*(vals.length>1? i/(vals.length-1):0.5);
+    const y = pad + (H-2*pad)*(1-(v-min)/span);
+    return [x,y];
+  });
+  const d = pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="margin-top:8px">
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    ${pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="${color}"/>`).join('')}
+    <text x="${pad}" y="${H-2}" font-family="Space Mono, monospace" font-size="9" fill="#7D8FA0">${min.toFixed(1)}</text>
+    <text x="${W-pad}" y="12" text-anchor="end" font-family="Space Mono, monospace" font-size="9" fill="#7D8FA0">${max.toFixed(1)}</text>
+  </svg>`;
+}
+
+/* ---------- saisie du poids acheté ----------
+   prompt() est bloqué dans les vues web embarquées : on affiche notre propre fenêtre. */
+function ouvreAchat(k, besoin){
+  const [nm,u] = k.split('|');
+  const inv = stock();
+  const actuel = inv[k] !== undefined ? Math.round(inv[k]) : besoin;
+  const el = document.createElement('div');
+  el.className = 'sheet-ov';
+  el.innerHTML = `
+    <div class="sheet">
+      <div class="eyebrow">Quantité réellement achetée</div>
+      <div class="sheet-nm">${nm}</div>
+      <div class="sheet-in">
+        <input type="number" inputmode="decimal" step="any" value="${actuel}" id="qAchat">
+        <span>${u==='u'?'unités':u}</span>
+      </div>
+      <button class="cta" data-sh="ok">Mettre en stock</button>
+      ${inv[k]!==undefined?`<button class="cta danger" data-sh="del">Retirer de l'inventaire</button>`:''}
+      <button class="cta ghost" data-sh="no">Annuler</button>
+    </div>`;
+  document.body.appendChild(el);
+  const champ = el.querySelector('#qAchat');
+  setTimeout(()=>{ champ.focus(); champ.select(); }, 60);
+  el.addEventListener('click', async (ev)=>{
+    const b = ev.target.closest('[data-sh]');
+    if(!b){ if(ev.target === el) el.remove(); return; }
+    const act = b.dataset.sh;
+    if(act === 'ok'){
+      const v = parseFloat(String(champ.value).replace(',','.'));
+      if(!isNaN(v) && v > 0){ stock()[k] = v; toast(nm + ' : ' + qteCourse(v,u) + ' en stock'); }
+      else { delete stock()[k]; toast('Retiré de l\'inventaire'); }
+    } else if(act === 'del'){
+      delete stock()[k]; toast('Retiré de l\'inventaire');
+    }
+    el.remove();
+    if(act !== 'no'){ await save(); render(); }
+  });
+}
+
+/* ============================================================
+   GUIDE D'ENTRAÎNEMENT
+   Tempo au métronome, disque respiratoire continu, séries et pauses,
+   et le schéma du mouvement en fond, cadencé sur les répétitions.
+   ============================================================ */
+const COUL = {plein:'#2FA79E', vide:'#E0A33C', bloque:'#A93B2C', pause:'#5D7A93'};
+
+function melange(a,b,t){
+  t = Math.max(0, Math.min(1, t));
+  const h = c => [1,3,5].map(i=>parseInt(c.substr(i,2),16));
+  const [r1,g1,b1] = h(a), [r2,g2,b2] = h(b);
+  const m = (x,y)=>Math.round(x+(y-x)*t).toString(16).padStart(2,'0');
+  return '#'+m(r1,r2)+m(g1,g2)+m(b1,b2);
+}
+const doux = u => 0.5 - 0.5*Math.cos(Math.PI*Math.max(0,Math.min(1,u)));   // sinus : départ et arrivée sans à-coup
+
+/* ---------- cycle respiratoire ----------
+   Chaque phase porte son rayon de départ et d'arrivée : la continuité
+   est garantie par construction, plus aucun saut entre deux phases.   */
+function respiration(nom, an){
+  const n = (nom||'').toLowerCase();
+  if(n.includes('vacuum')){
+    // les secondes prescrites décomptent le blocage poumons vides, pas l'expiration
+    const tenue = (an && an.type==='duree' && an.duree) ? an.duree : 12;
+    return {tenue:true, phases:[
+      ['Expire à fond',        4,     1.00, 0.30, COUL.plein,  COUL.vide],
+      ['Poumons vides — tiens', tenue, 0.30, 0.22, COUL.vide,   COUL.bloque],
+      ['Inspire',              3,     0.22, 1.00, COUL.bloque, COUL.plein]]};
+  }
+  if(n.includes('respiration 90/90')) return {phases:[
+    ['Inspire',            3, 0.30, 1.00, COUL.vide,  COUL.plein],
+    ['Expire lentement',   5, 1.00, 0.30, COUL.plein, COUL.vide],
+    ['Poumons vides',      2, 0.30, 0.30, COUL.vide,  COUL.vide]]};
+  if(n.includes('respiration 360')) return {phases:[
+    ['Inspire par les côtes', 4, 0.30, 1.00, COUL.vide,  COUL.plein],
+    ['Expire',             6, 1.00, 0.30, COUL.plein, COUL.vide]]};
+  if(n.includes('planche')||n.includes('hollow')||n.includes('copenhagen')||n.includes('carry')) return {phases:[
+    ['Inspire',            3, 0.30, 1.00, COUL.vide,  COUL.plein],
+    ['Expire — le ventre rentre', 4, 1.00, 0.30, COUL.plein, COUL.vide]]};
+  return {phases:[
+    ['Inspire',            3, 0.30, 1.00, COUL.vide,  COUL.plein],
+    ['Expire sur l\'effort', 4, 1.00, 0.30, COUL.plein, COUL.vide]]};
+}
+
+/* ---------- lecture des séries ---------- */
+function analyseSerie(sr){
+  const t = (sr||'').replace(/\u2013|\u2014/g,'-');
+  const series = +((t.match(/^\s*(\d+)\s*[×x]/)||[])[1] || 1);
+  const mins   = t.match(/(\d+)(?:-(\d+))?\s*min/);
+  const metres = t.match(/[×x]\s*(\d+)\s*m\b/);
+  const secs   = t.match(/[×x]\s*(\d+)(?:-(\d+))?\s*s\b/);
+  const cycles = t.match(/[×x]\s*(\d+)\s*cycle/);
+  const reps   = t.match(/[×x]\s*(\d+)(?:-(\d+))?/);
+  if(mins)   return {series:1, duree:(+mins[1])*60, type:'duree'};
+  if(metres) return {series, duree:Math.round(+metres[1]*0.8), type:'duree'};  // portage : ~1,25 m/s
+  if(secs)   return {series, duree:+(secs[2]||secs[1]), type:'duree'};
+  if(cycles) return {series, reps:+cycles[1], type:'reps'};
+  if(reps)   return {series, reps:+(reps[2]||reps[1]), type:'reps'};
+  return {series:3, reps:10, type:'reps'};
+}
+// temps de récupération : plus la série est lourde et brève, plus la pause est longue
+const GAINAGE = ['dead bug','bird dog','shoulder taps','reverse crunch','planche','hollow',
+                 'copenhagen','pallof','renegade','superman','pont fessier','table inversée'];
+// Les repos longs (2 à 3 min) maximisent l'hypertrophie quand on cherche la performance
+// pure. Ici on travaille en déficit, à charges modérées et sur un créneau court : la
+// priorité est de finir la séance. On raccourcit, et le bouton « Passer » permet
+// d'enchaîner dès qu'on se sent prêt — l'auto-régulation vaut mieux qu'un chiffre fixe.
+function pause(a, nom){
+  const n = (nom||'').toLowerCase();
+  if(n.includes('respiration')||n.includes('vacuum')||n.includes('étirement')) return 15;
+  if(GAINAGE.some(g=>n.includes(g))) return a.type==='duree' && a.duree>=40 ? 45 : 40;
+  if(a.type === 'duree') return a.duree >= 40 ? 45 : 40;
+  if(a.reps <= 8)  return 120;
+  if(a.reps <= 12) return 90;
+  return 60;
+}
+
+const Guide = (()=>{
+  let ctx=null, hote=null, raf=null, tempo=null, t0=0, cfg=null, an=null,
+      liste=[], idx=0, son=true, phase=-1, fini=false, dernierBip=-1, gel=0;
+
+  function bip(freq, dur, gain, type){
+    if(!ctx || !son) return;
+    const o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime;
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(freq*2.6, t);
+    o.frequency.exponentialRampToValueAtTime(freq, t+0.05);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t+dur+0.02);
+  }
+  function note(freq, dep, dur, gain){
+    if(!ctx || !son) return;
+    const o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime+dep;
+    o.type = 'triangle'; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(gain, t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t+dur+0.05);
+  }
+  const victoire = ()=>[523,659,784,1047].forEach((f,i)=>note(f, i*0.13, 0.36, 0.22));
+
+  const cycle = () => cfg.phases.reduce((s,p)=>s+p[1], 0);
+
+  // Un cycle qui commence par une expiration suppose les poumons déjà pleins.
+  // On intercale donc une inspiration avant la toute première expiration de chaque série.
+  function amorce(){
+    const p0 = cfg.phases[0];
+    if(!/^expire/i.test(p0[0])) return null;
+    return ['Inspire — prépare-toi', 3, 0.30, p0[2], COUL.vide, p0[4]];
+  }
+  function etatAmorce(t){
+    const a = amorce();
+    if(!a) return {nom:'', r:0.30, col:COUL.vide, reste:0};   // sécurité : pas d'amorce sur ce cycle
+    const [nom, duree, r0, r1, c0, c1] = a;
+    const k = doux(t/duree);
+    return {nom, r: r0+(r1-r0)*k, col: melange(c0, c1, t/duree), reste: Math.ceil(duree-t)};
+  }
+
+  /* déroulé complet : série 1, pause, série 2, pause, série 3.
+     Construit une seule fois par exercice : le recalculer à chaque image
+     coûtait cher et exposait à un état incohérent en cours de transition. */
+  let plan = null;
+  function programme(){
+    if(plan) return plan;
+    const a = an, c = cycle();
+    const am = amorce();
+    const bloc = cfg.tenue ? c : (a.type==='duree' ? a.duree : a.reps*c);
+    const amo = am ? am[1] : 0;
+    const seq = [];
+    for(let i=0;i<a.series;i++){
+      seq.push({genre:'serie', n:i+1, duree:bloc+amo, amo});
+      if(i < a.series-1){
+        const d = pause(a, liste[idx].nm);
+        seq.push({genre:'pause', n:i+1, duree:d, phases:phasesPause(d, finDeSerie())});
+      }
+    }
+    plan = seq;
+    return seq;
+  }
+  function position(sec){
+    const seq = programme();
+    let t = sec;
+    for(const e of seq){
+      if(t < e.duree) return {...e, t, seq};
+      t -= e.duree;
+    }
+    return {genre:'fini', t:0, seq};
+  }
+
+  function etatPhases(ph, t){
+    let u = Math.max(0, t), i = 0;
+    while(i < ph.length-1 && u >= ph[i][1]){ u -= ph[i][1]; i++; }
+    const [nom, duree, r0, r1, c0, c1] = ph[i];
+    u = Math.min(u, duree);
+    const k = doux(u/duree);
+    return {nom, r: r0+(r1-r0)*k, col: melange(c0, c1, u/duree), reste: Math.ceil(duree-u), i};
+  }
+  const etatSouffle = t => etatPhases(cfg.phases, t % cycle());
+
+  // Volume pulmonaire et couleur à l'instant précis où la série se termine :
+  // la récupération doit repartir de là, sans rupture.
+  function finDeSerie(){
+    const bloc = cfg.tenue ? cycle() : (an.type==='duree' ? an.duree : an.reps*cycle());
+    return etatSouffle(Math.max(0, bloc - 0.001));
+  }
+
+  // Récupération : on souffle d'abord, puis respiration lente 4 s / 6 s.
+  // L'expiration plus longue que l'inspiration est ce qui fait redescendre le rythme cardiaque.
+  function phasesPause(duree, e0){
+    const P0 = COUL.pause;
+    const ph = [['Souffle — relâche', 4, e0.r, 0.30, e0.col, P0]];
+    let reste = Math.max(0, duree - 4);
+    while(reste >= 10){
+      ph.push(['Récupération — inspire', 4, 0.30, 0.80, P0, P0]);
+      ph.push(['Récupération — expire',  6, 0.80, 0.30, P0, P0]);
+      reste -= 10;
+    }
+    if(reste >= 2){
+      const i = Math.max(1, Math.round(reste*0.4));
+      ph.push(['Récupération — inspire', i, 0.30, 0.70, P0, P0]);
+      ph.push(['Récupération — expire',  Math.max(1, reste-i), 0.70, 0.30, P0, P0]);
+    } else if(reste > 0){
+      ph[ph.length-1][1] += reste;              // on absorbe le reliquat sur la dernière expiration
+    }
+    return ph;
+  }
+
+  function image(now){
+    if(!hote){ raf = null; return; }                      // le guide a été fermé entre deux images
+    if(gel){ raf = requestAnimationFrame(image); return; }
+    try{ dessineImage(now); }
+    catch(err){
+      console.error('Guide :', err);
+      q2('.g-phase', 'Reprise…'); plan = null; t0 = performance.now();
+    }
+    raf = requestAnimationFrame(image);
+  }
+  const q2 = (sel,v)=>{ const el = hote && hote.querySelector(sel); if(el) el.textContent = v; };
+
+  function dessineImage(now){
+    const sec = (now - t0)/1000;
+    const p = position(sec);
+    const q = (sel,v)=>{ const el=hote.querySelector(sel); if(el) el.textContent=v; };
+
+    if(p.genre === 'fini'){
+      if(!fini){ fini = true; victoire(); if(tempo){clearInterval(tempo); tempo=null;} }
+      hote.querySelector('.g-cercle').setAttribute('r', 40);
+      hote.querySelector('.g-cercle').setAttribute('fill', COUL.plein);
+      hote.querySelector('.g-halo').setAttribute('r', 47);
+      hote.querySelector('.g-halo').setAttribute('stroke', COUL.plein);
+      q('.g-compte',''); q('.g-phase','Exercice terminé'); q('.g-serie','');
+      return;
+    }
+
+    let R, col, label, compte;
+    hote.querySelector('.g-passer').style.display = (p.genre === 'pause') ? '' : 'none';
+    if(p.genre === 'pause'){
+      const reste = Math.ceil(p.duree - p.t);
+      const e = etatPhases(p.phases, p.t);
+      R = 8 + e.r*54;
+      col = e.col;
+      label = e.nom;
+      compte = reste;
+      q('.g-serie', 'Série ' + (p.n||'') + ' terminée · repos ' + p.duree + ' s');
+      const s = Math.floor(p.t);
+      if(s !== dernierBip){ dernierBip = s; if(reste<=3) bip(880,.10,.20,'square'); else if(s%2===0) bip(220,.09,.10); }
+    } else if(p.t < (p.amo||0)){
+      const e = etatAmorce(p.t);
+      R = 8 + e.r*54; col = e.col; label = e.nom; compte = e.reste;
+      q('.g-serie', 'Série ' + p.n + ' / ' + an.series + ' · mise en place');
+      if(phase !== -2){ phase = -2; bip(440,.12,.16); }
+      if(fond) fond(0);
+    } else {
+      const tt = p.t - (p.amo||0);
+      const e = etatSouffle(tt);
+      R = 8 + e.r*54; col = e.col; label = e.nom; compte = e.reste;
+      const rep = an.type==='duree' ? null : Math.min(an.reps, Math.floor(tt/cycle())+1);
+      q('.g-serie', 'Série ' + p.n + ' / ' + an.series
+        + (cfg.tenue ? ' · maintien ' + cfg.phases[1][1] + ' s'
+        : rep ? ' · répétition ' + rep + ' / ' + an.reps
+              : ' · ' + Math.ceil(p.duree-p.t) + ' s restantes'));
+      if(e.i !== phase){ phase = e.i; bip(330,.12,.16); }
+      // schéma de fond calé sur la répétition en cours
+      if(fond) fond(an.type==='duree' ? (tt/cycle())%1 : (tt%cycle())/cycle());
+    }
+    hote.querySelector('.g-cercle').setAttribute('r', R.toFixed(1));
+    hote.querySelector('.g-cercle').setAttribute('fill', col);
+    hote.querySelector('.g-halo').setAttribute('r', (R+7).toFixed(1));
+    hote.querySelector('.g-halo').setAttribute('stroke', col);
+    q('.g-compte', compte); q('.g-phase', label);
+  }
+
+  /* ---------- schéma du mouvement en fond ---------- */
+  let fond = null;
+  function prepareFond(e){
+    const zone = hote.querySelector('.g-fond');
+    zone.innerHTML = ''; fond = null;
+    const M = window.Mouvements;
+    if(!M || !e.anim || !M.MOUV[e.anim]) return;
+    const m = M.MOUV[e.anim];
+    M.limiteSol(m);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox', m.vue.join(' '));
+    svg.setAttribute('class','g-fond-svg');
+    zone.appendChild(svg);
+    fond = (u)=>{
+      const {p} = M.poseA(m, u);
+      svg.innerHTML = (m.sol!==undefined && m.sol!==null
+        ? `<line x1="${m.vue[0]}" y1="${m.sol}" x2="${m.vue[0]+m.vue[2]}" y2="${m.sol}" stroke="#7E95A8" stroke-width="2" stroke-dasharray="6 6"/>` : '')
+        + M.dessine(M.squelette(p), Object.assign({}, m.opt||{}, {clair:true}));
+    };
+    fond(0);
+  }
+
+  function montre(){
+    const e = liste[idx];
+    hote.querySelector('.g-num').textContent = 'Exercice ' + (idx+1) + ' / ' + liste.length;
+    hote.querySelector('.g-nom').textContent = e.nm;
+    hote.querySelector('.g-sr').textContent  = e.sr;
+    hote.querySelector('.g-tip').textContent = e.tip || '';
+    an  = analyseSerie(e.sr);
+    cfg = respiration(e.nm, an);
+    plan = null;
+    phase = -1; fini = false; dernierBip = -1; t0 = performance.now();
+    prepareFond(e);
+    hote.querySelector('.g-prev').style.visibility = idx===0 ? 'hidden' : 'visible';
+    hote.querySelector('.g-next').style.visibility = idx===liste.length-1 ? 'hidden' : 'visible';
+  }
+
+  function lance(){
+    try{
+      ctx = ctx || new (window.AudioContext||window.webkitAudioContext)();
+      if(ctx.state === 'suspended') ctx.resume();
+    }catch(err){ ctx = null; }
+    hote.querySelector('.g-pret').style.display = 'none';
+    hote.querySelector('.g-scene').style.display = 'flex';
+    t0 = performance.now(); phase = -1; fini = false; gel = 0;
+    if(tempo) clearInterval(tempo);
+    tempo = setInterval(()=>{ if(!fini) bip(55,.16,.30); }, 1000);
+    bip(55,.16,.30);
+    if(raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(image);
+  }
+
+  function stop(){
+    if(raf) cancelAnimationFrame(raf); raf = null;
+    if(tempo) clearInterval(tempo); tempo = null;
+    gel = 0;
+  }
+  // Passer le repos : on avance le chrono jusqu'à la fin de la récupération en cours
+  function passeRepos(){
+    if(gel) return;
+    const p = position((performance.now() - t0)/1000);
+    if(p.genre !== 'pause') return;
+    t0 -= (p.duree - p.t) * 1000;
+    phase = -1; dernierBip = -1;
+    bip(660,.12,.20,'square');
+  }
+
+  // Pause : on fige le chrono en décalant l'origine, rien n'est perdu
+  function basculePause(){
+    const b = hote.querySelector('.g-pause');
+    if(gel){
+      t0 += performance.now() - gel; gel = 0;
+      b.textContent = 'Pause'; b.classList.remove('on');
+      if(!tempo && !fini) tempo = setInterval(()=>{ if(!fini && !gel) bip(55,.16,.30); }, 1000);
+    } else {
+      gel = performance.now();
+      b.textContent = 'Reprendre'; b.classList.add('on');
+      if(tempo){ clearInterval(tempo); tempo = null; }
+    }
+  }
+  // Stop : on abandonne l'exercice en cours et on revient à l'écran de départ
+  function arrete(){
+    stop();
+    fini = false; phase = -1; dernierBip = -1;
+    hote.querySelector('.g-pause').textContent = 'Pause';
+    hote.querySelector('.g-pause').classList.remove('on');
+    hote.querySelector('.g-scene').style.display = 'none';
+    hote.querySelector('.g-pret').style.display = '';
+    hote.querySelector('.g-pret').textContent = 'Reprendre au début';
+    if(fond) fond(0);
+  }
+  function ferme(){ stop(); if(hote){ hote.remove(); hote = null; } }
+
+  function va(n){
+    idx = Math.max(0, Math.min(liste.length-1, idx+n));
+    stop(); montre();
+    hote.querySelector('.g-pret').textContent = 'Prêt ?';
+    hote.querySelector('.g-pret').style.display = '';
+    hote.querySelector('.g-scene').style.display = 'none';
+  }
+
+  function ouvre(ex){
+    if(!ex || !ex.length) return;
+    liste = ex; idx = 0;
+    ferme();
+    hote = document.createElement('div');
+    hote.className = 'g-ov';
+    hote.innerHTML = `
+      <button class="g-close" aria-label="Fermer">✕</button>
+      <div class="g-num"></div>
+      <div class="g-nom"></div>
+      <div class="g-sr"></div>
+      <div class="g-tip"></div>
+      <button class="g-pret">Prêt ?</button>
+      <div class="g-scene">
+        <div class="g-disc">
+          <div class="g-fond"></div>
+          <svg viewBox="-80 -80 160 160" class="g-svg">
+            <circle class="g-halo" cx="0" cy="0" r="0" fill="none" stroke-width="2.5"/>
+            <circle class="g-cercle" cx="0" cy="0" r="0"/>
+          </svg>
+          <div class="g-compte"></div>
+        </div>
+        <div class="g-phase"></div>
+        <div class="g-serie"></div>
+        <div class="g-cmd">
+          <button class="g-passer">Passer le repos</button>
+          <button class="g-pause">Pause</button>
+          <button class="g-stop">Stop</button>
+        </div>
+      </div>
+      <div class="g-bas">
+        <button class="g-prev">Précédent</button>
+        <button class="g-son" aria-pressed="true">Son</button>
+        <button class="g-next">Suivant</button>
+      </div>`;
+    document.body.appendChild(hote);
+    montre();
+    hote.querySelector('.g-pret').addEventListener('click', lance);
+    hote.querySelector('.g-passer').addEventListener('click', passeRepos);
+    hote.querySelector('.g-pause').addEventListener('click', basculePause);
+    hote.querySelector('.g-stop').addEventListener('click', arrete);
+    hote.querySelector('.g-close').addEventListener('click', ferme);
+    hote.querySelector('.g-prev').addEventListener('click', ()=>va(-1));
+    hote.querySelector('.g-next').addEventListener('click', ()=>va(1));
+    const bs = hote.querySelector('.g-son');
+    bs.addEventListener('click', ()=>{ son=!son; bs.setAttribute('aria-pressed', son); bs.textContent = son?'Son':'Muet'; });
+  }
+
+  return {ouvre, ferme, analyseSerie, respiration, pause};
+})();
+
+/* ============================================================
+   NAVIGATION + RENDU
+   ============================================================ */
+const TABS = [
+  ['semaine','Semaine','<path d="M3 5h18v16H3z"/><path d="M3 10h18M8 3v4M16 3v4"/>'],
+  ['courses','Courses','<path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.4a2 2 0 0 0 2-1.5L20.5 8H6"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/>'],
+  ['suivi','Suivi','<path d="M3 17l5-5 4 4 8-8"/><path d="M16 8h5v5"/>'],
+  ['profil','Toi','<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/>']
+];
+
+function renderNav(){
+  const alerte = (!onboarding && P) ? bientotEpuise().length : 0;
+  document.getElementById('nav').innerHTML = TABS.map(([k,l,ic])=>
+    `<button data-tab="${k}" ${tab===k?'aria-current="page"':''}>
+      <span class="ic-wrap"><svg class="ic" viewBox="0 0 24 24">${ic}</svg>${k==='courses'&&alerte?`<span class="pastille">${alerte>9?'9+':alerte}</span>`:''}</span>
+      <span class="lb">${l.toUpperCase()}</span>
+    </button>`).join('');
+}
+
+function vueOnboarding(){
+  return `
+  <div class="card" style="margin-top:8px">
+    <div class="eyebrow">Avant de commencer</div>
+    <h1 style="font-size:26px;margin:8px 0 10px;line-height:1.15">Un ventre plat se joue<br>sur quatre choses.</h1>
+    <div style="font-size:14.5px;line-height:1.6;color:var(--encre2)">
+      La graisse qui couvre les abdominaux. La sangle profonde qui les contient. La posture du bassin. Et la digestion.<br><br>
+      Trois de ces quatre paramètres n'ont rien à voir avec le poids — et ils changent l'aspect du ventre en quelques jours.<br><br>
+      Renseigne tes chiffres et tes vraies disponibilités : le programme, les séances et les repas se calent dessus.
+    </div>
+    <button class="cta" data-act="start" style="margin-top:18px">Créer mon programme</button>
+    <button class="cta ghost" id="btnInstall" data-act="install" style="margin-top:10px;display:${promptInstall?'block':'none'}">Installer sur l'écran d'accueil</button>
+  </div>`;
+}
+
+let onboarding = false;
+
+// met à jour les valeurs dérivées du profil sans reconstruire la page
+function refreshProfilNotes(){
+  if(onboarding || tab!=='profil') return;
+  const c = calculs(P);
+  const nA = document.getElementById('noteAct');
+  if(nA) nA.innerHTML = `${LBL_ACT[P.activite]} — facteur ×${FACT_ACT[P.activite]}`;
+  const nR = document.getElementById('noteRyt');
+  if(nR) nR.innerHTML = `Perte estimée : <b>${c.perteSem.toFixed(2)} kg / semaine</b> — soit environ <b>${c.projection} kg</b> au bout des 12 semaines.`
+    + (c.brid?'<br><b style="color:var(--rouge)">Déficit bridé</b> : descendre plus bas ferait perdre du muscle. Le rythme réel sera un peu plus lent que demandé.':'');
+  drawTape();
+  const rs = document.getElementById('rubSub');
+  if(rs) rs.textContent = 'Semaine '+semaineCourante()+' / 12';
+}
+
+function render(toTop){
+  const y = window.scrollY;
+  drawTape();
+  const rt = document.getElementById('rubTitle'), rs = document.getElementById('rubSub');
+  if(onboarding){ rt.textContent='Chocolat'; rs.textContent='programme ventre plat'; }
+  else {
+    const s = semaineCourante();
+    rt.textContent = tab==='semaine'?'Ta semaine':tab==='courses'?'Tes courses':tab==='suivi'?'Ton suivi':'Ton profil';
+    rs.textContent = 'Semaine '+s+' / 12';
+  }
+  const app = document.getElementById('app');
+  app.innerHTML = onboarding ? vueOnboarding()
+    : tab==='semaine'? vueSemaine()
+    : tab==='courses'? vueCourses()
+    : tab==='suivi'? vueSuivi()
+    : vueProfil();
+  if(!Store.persistant){
+    const av = document.createElement('div');
+    av.className = 'card';
+    av.style.cssText = 'background:var(--ambre-pale);margin-bottom:12px';
+    av.innerHTML = '<div class="eyebrow">Mode test</div><div style="font-size:13.5px;line-height:1.5;margin-top:6px">'
+      + 'Le fichier est ouvert en local : le navigateur bloque le stockage, tes réglages seront perdus en fermant l\'onglet. '
+      + 'Mets le site en ligne (voir le LISEZ-MOI) pour que le suivi soit conservé.</div>';
+    app.insertBefore(av, app.firstChild);
+  }
+  if(window.Mouvements) window.Mouvements.monteTous(app);
+  renderNav();
+  document.getElementById('nav').style.display = onboarding?'none':'flex';
+  if(toTop) window.scrollTo(0,0);
+  else window.scrollTo(0,y);
+}
+
+/* ============================================================
+   ÉVÉNEMENTS
+   ============================================================ */
+document.addEventListener('click', async (ev)=>{
+  const t = ev.target.closest('[data-tab],[data-set],[data-day],[data-reg],[data-acc],[data-infos],[data-act],[data-toggle],[data-del],[data-jeune],[data-jours],[data-coche],[data-seance],[data-valide],[data-achat],[data-vider],[data-delimg]');
+  if(!t) return;
+
+  if(t.dataset.tab){ tab=t.dataset.tab; render(true); return; }
+
+  if(t.dataset.toggle){
+    const k=t.dataset.toggle; openSess[k]=!openSess[k]; render(); return;
+  }
+  if(t.dataset.set){ P[t.dataset.set]=t.dataset.val; await save(); render(); return; }
+  if(t.dataset.day!==undefined){
+    const i=+t.dataset.day; P.dispo[i].on=!P.dispo[i].on; await save(); render(); return;
+  }
+  if(t.dataset.valide){
+    const [jour, key] = t.dataset.valide.split('|');
+    P.valides = P.valides || {};
+    const ck = cleRepas(+jour, key);
+    if(P.valides[ck]){ delete P.valides[ck]; toast('Validation annulée'); }
+    else {
+      P.valides[ck] = 1;
+      const o = menuDuJour(+jour).out.find(x=>x.key===key);
+      if(o && !o.jeune) retireDuStock(o);
+      const reste = bientotEpuise().length;
+      toast(reste? 'Repas validé — ' + reste + ' aliment(s) à racheter' : 'Repas validé');
+    }
+    await save(); render(); return;
+  }
+  if(t.dataset.achat){ ouvreAchat(t.dataset.achat, t.dataset.besoin); return; }
+  if(t.dataset.vider){
+    delete stock()[t.dataset.vider];
+    await save(); render(); return;
+  }
+  if(t.dataset.seance !== undefined){
+    const plan = buildSemaine();
+    const d = plan[+t.dataset.seance];
+    const ex = [].concat(...d.blocs.map(b=>b.ex));
+    Guide.ouvre(ex);
+    return;
+  }
+  if(t.dataset.jours){
+    P.courses = P.courses || {jours:7, coches:{}};
+    P.courses.jours = +t.dataset.jours;
+    await save(); render(); return;
+  }
+  if(t.dataset.coche){
+    P.courses = P.courses || {jours:7, coches:{}};
+    const k = t.dataset.coche;
+    if(P.courses.coches[k]) delete P.courses.coches[k]; else P.courses.coches[k] = 1;
+    await save(); render(); return;
+  }
+  if(t.dataset.jeune){
+    P.jeune = P.jeune||{};
+    const k = t.dataset.jeune;
+    P.jeune[k] = !P.jeune[k];
+    await save(); render();
+    toast(P.jeune[k] ? 'Repas jeûné — calories reportées' : 'Repas réactivé');
+    return;
+  }
+  if(t.dataset.infos){
+    infos[t.dataset.infos] = !infos[t.dataset.infos];
+    render(); return;
+  }
+  if(t.dataset.acc){
+    P.accessoires = P.accessoires || [];
+    const v = t.dataset.acc;
+    P.accessoires = P.accessoires.includes(v) ? P.accessoires.filter(x=>x!==v) : [...P.accessoires, v];
+    await save(); render(); return;
+  }
+  if(t.dataset.reg){
+    P.regime = P.regime||[];
+    const v=t.dataset.reg;
+    // un régime plus strict rend les autres redondants
+    const REDONDANT = {
+      vegan:      ['vegetarien','sansViande','sansPoisson'],
+      vegetarien: ['vegan','sansViande','sansPoisson'],
+      sansViande: ['vegan','vegetarien'],
+      sansPoisson:['vegan','vegetarien']
+    };
+    if(P.regime.includes(v)){
+      P.regime = P.regime.filter(x=>x!==v);
+    } else {
+      const retire = REDONDANT[v] || [];
+      P.regime = [...P.regime.filter(x=>retire.indexOf(x) < 0), v];
+    }
+    await save(); render(); return;
+  }
+  if(t.dataset.delimg){
+    const d = t.dataset.delimg;
+    journal = journal.map(e=>e.d===d ? {...e, img:null} : e).filter(e=>e.p||e.img);
+    await save(); render(); return;
+  }
+  if(t.dataset.del){
+    journal = journal.filter(e=>e.d!==t.dataset.del); await save(); render(); return;
+  }
+  const a=t.dataset.act;
+  if(a==='start'){ onboarding=false; tab='profil'; await save(); render(true); toast('Renseigne tes chiffres, puis va dans « Semaine »'); return; }
+  if(a==='install'){
+    if(!promptInstall){ toast('Utilise le menu ⋮ de Chrome → « Installer l\'application »'); return; }
+    promptInstall.prompt();
+    const r = await promptInstall.userChoice;
+    if(r && r.outcome==='accepted') promptInstall=null;
+    return;
+  }
+  if(a==='shuffle'){ menuSeed++; render(); return; }
+  if(a==='videpanier'){
+    P.courses = P.courses || {jours:7, coches:{}};
+    P.inventaire = {};
+    await save(); render(); toast('Inventaire vidé'); return;
+  }
+  if(a==='log'){
+    const p=parseFloat(document.getElementById('inP').value);
+    if(isNaN(p)){ toast('Renseigne un poids'); return; }
+    const d=todayISO();
+    journal = journal.filter(e=>e.d!==d);
+    const anc = journal.find(e=>e.d===d);
+    journal = journal.filter(e=>e.d!==d);
+    journal.push({d, p, img: anc? anc.img : null});
+    if(!isNaN(p)) P.poids=p;
+    await save(); render(); toast('Mesure enregistrée'); return;
+  }
+  if(a==='reset'){
+    if(confirm('Effacer le profil et tout l\'historique ? Cette action est définitive.')){
+      await Store.del(CLE.profil); await Store.del(CLE.journal);
+      P=JSON.parse(JSON.stringify(defaultProfil)); journal=[]; onboarding=true; tab='semaine'; render();
+    }
+    return;
+  }
+});
+
+// redimensionne et compresse avant stockage : une photo brute ferait plusieurs Mo
+async function compresse(file, large){
+  const url = URL.createObjectURL(file);
+  try{
+    const img = await new Promise((ok,ko)=>{ const i=new Image(); i.onload=()=>ok(i); i.onerror=ko; i.src=url; });
+    const ech = Math.min(1, large/img.naturalWidth);
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.naturalWidth*ech); c.height = Math.round(img.naturalHeight*ech);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.72);
+  } finally { URL.revokeObjectURL(url); }
+}
+
+document.addEventListener('change', async (ev)=>{
+  if(ev.target.id === 'photoIn'){
+    const file = ev.target.files && ev.target.files[0];
+    if(!file) return;
+    try{
+      const img = await compresse(file, 520);
+      const d = todayISO();
+      journal = journal.filter(e=>e.d!==d || !e.img);
+      const exist = journal.find(e=>e.d===d);
+      if(exist) exist.img = img; else journal.push({d, p:null, img});
+      await save(); render(); toast('Photo enregistrée');
+    }catch(err){ toast('Impossible de lire cette image'); }
+    return;
+  }
+  const el=ev.target;
+  if(el.dataset.num){ const v=parseFloat(el.value); if(!isNaN(v)) P[el.dataset.num]=v; await save(); refreshProfilNotes(); }
+  else if(el.dataset.txt){ P[el.dataset.txt]=el.value; await save(); refreshProfilNotes(); }
+  else if(el.dataset.daysel){
+    const i=+el.dataset.i;
+    P.dispo[i][el.dataset.daysel] = el.dataset.daysel==='minutes'? +el.value : el.value;
+    await save(); render();
+  }
+});
+
+/* ============================================================
+   INSTALLATION (PWA)
+   ============================================================ */
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+let promptInstall = null;
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  promptInstall = e;
+  const b = document.getElementById('btnInstall');
+  if(b) b.style.display='block';
+});
+window.addEventListener('appinstalled', ()=>{
+  promptInstall = null;
+  const b = document.getElementById('btnInstall');
+  if(b) b.style.display='none';
+  toast('Application installée');
+});
+
+/* ============================================================
+   DÉMARRAGE
+   ============================================================ */
+(async function init(){
+  try{
+    let raw = await Store.get(CLE.profil);
+    if(!raw) raw = await Store.get('sangle:profil');      // reprise des données de l'ancien nom
+    if(raw){ P = {...defaultProfil, ...JSON.parse(raw)}; onboarding=false; }
+    else { P = JSON.parse(JSON.stringify(defaultProfil)); onboarding=true; }
+    openSess['d'+((new Date().getDay()+6)%7)] = true;   // le jour courant est déplié d'emblée
+    let jr = await Store.get(CLE.journal);
+    if(!jr) jr = await Store.get('sangle:journal');
+    if(jr) journal = JSON.parse(jr)||[];
+  }catch(e){
+    P = JSON.parse(JSON.stringify(defaultProfil)); onboarding=true;
+  }
+  render();
+})();
+</script>
+</body>
+</html>
