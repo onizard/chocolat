@@ -319,18 +319,18 @@ const MOUV = {
     ]},
 
   pontFessier:{
-    nom:'Pont fessier', vue:[-135,-80,290,125], sol:10, duree:4800,
+    nom:'Pont fessier', vue:[-140,-80,300,128], sol:10, duree:4800,
     cles:[
-      {t:0,   label:'Départ, bassin au sol, pieds à plat', p:P({...DOS, ventre:-.1,
-        brasP:[190,190], brasL:[192,192], jambeP:[165,-33,20], jambeL:[167,-31,20]})},
-      {t:.4,  label:'Monte par les fessiers, pas par les lombaires', p:P({...DOS, y:-26, ventre:-.28,
-        spine:[-8,-4,0], tete:0,
-        brasP:[190,190], brasL:[192,192], jambeP:[185,-55,20], jambeL:[187,-53,20]})},
-      {t:.6,  label:'Serre les fessiers 2 secondes', p:P({...DOS, y:-27, ventre:-.3,
-        spine:[-9,-4,0], tete:0,
-        brasP:[190,190], brasL:[192,192], jambeP:[186,-56,20], jambeL:[188,-54,20]})},
+      {t:0,   label:'Départ, bassin au sol, talons près des fesses', p:P({...DOS, ventre:-.1,
+        brasP:[190,190], brasL:[192,192], jambeP:[133,-109,180], jambeL:[135,-107,180]})},
+      {t:.4,  label:'Monte par les fessiers, pas par les lombaires', p:P({...DOS, y:-16,
+        spine:[-25,-17,-2], tete:0, ventre:-.28,
+        brasP:[190,190], brasL:[192,192], jambeP:[159,-95,180], jambeL:[161,-93,180]})},
+      {t:.6,  label:'Épaule, hanche et genou alignés — serre 2 secondes', p:P({...DOS, y:-17,
+        spine:[-26,-18,-2], tete:0, ventre:-.3,
+        brasP:[190,190], brasL:[192,192], jambeP:[160,-94,180], jambeL:[162,-92,180]})},
       {t:1,   label:'Redescends lentement', p:P({...DOS, ventre:-.1,
-        brasP:[190,190], brasL:[192,192], jambeP:[165,-33,20], jambeL:[167,-31,20]})}
+        brasP:[190,190], brasL:[192,192], jambeP:[133,-109,180], jambeL:[135,-107,180]})}
     ]},
 
   psoas:{
