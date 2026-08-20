@@ -1626,12 +1626,33 @@ const REPERES = {
   feuilles:   [['poignee',25]],
   olives:     [['cs',12],['cc',4]],
   fromage:    [['cs',15]],
-  proteine:   [['paume',110]],
+  proteine:   [['paume',110]],      // pièce ferme (filet, blanc, pavé, steak)
+  proteine_molle: [['poignee',50]], // émietté / haché / cubes (thon, crevettes, tofu…) : la paume ne convient pas
   chocolat:   [['carre',5]],
   pain:       [['tranche',30]],
   liquide:    [['verre',200],['cs',15]],
   legume:     [['poignee',80]]
 };
+// Aliments qui se comptent à la pièce : au-delà d'une certaine quantité, un
+// décompte en poignées n'a plus de sens (« 9 poignées de brocolis ») ; on parle
+// alors en nombre d'éléments (« 2 brocolis »). [mots-clés, grammes d'UNE pièce, singulier, pluriel].
+const PIECES = [
+  {mots:['brocoli'],                       g:250, u:'brocoli',        p:'brocolis'},
+  {mots:['courgette'],                     g:200, u:'courgette',      p:'courgettes'},
+  {mots:['aubergine'],                     g:250, u:'aubergine',      p:'aubergines'},
+  {mots:['patate douce'],                  g:200, u:'patate douce',   p:'patates douces'},
+  {mots:['pomme de terre','pommes de terre'], g:100, u:'pomme de terre', p:'pommes de terre'},
+  {mots:['carotte'],                       g:70,  u:'carotte',        p:'carottes'},
+  {mots:['tomate'],                        g:120, u:'tomate',         p:'tomates'},
+  {mots:['concombre'],                     g:300, u:'concombre',      p:'concombres'},
+  {mots:['fenouil'],                       g:250, u:'fenouil',        p:'fenouils'},
+  {mots:['avocat'],                        g:120, u:'avocat',         p:'avocats'}
+];
+function pieceDe(nm, unite){
+  if(unite !== 'g') return null;
+  const s = (nm||'').toLowerCase();
+  return PIECES.find(pc=>pc.mots.some(m=>s.indexOf(m) >= 0)) || null;
+}
 function categorieAliment(nm, unite){
   if(unite === 'ml') return 'liquide';
   const s = (nm||'').toLowerCase();
@@ -1650,30 +1671,46 @@ function categorieAliment(nm, unite){
   if(has('feta','parmesan','mozzarella','comté','comte','gruyère','gruyere')) return 'fromage';
   if(has('chocolat')) return 'chocolat';
   if(has('pain','tortilla','galette','tartine','biscotte')) return 'pain';
-  if(has('poulet','dinde','bœuf','boeuf','steak','saumon','cabillaud','colin','truite','maquereau','thon','crevette','tofu','tempeh','poisson','viande','jambon','œuf','oeuf')) return 'proteine';
+  // protéines non fermes (émiettées, hachées, en cubes) : pas de repère « paume »
+  if(has('thon','crevette','haché','hache','émietté','emiette','tofu','tempeh')) return 'proteine_molle';
+  if(has('poulet','dinde','bœuf','boeuf','steak','saumon','cabillaud','colin','truite','maquereau','poisson','viande','jambon','œuf','oeuf')) return 'proteine';
   return 'legume';
+}
+// Valeur réellement affichée pour x (entier ou demi), utilisée pour l'accord
+// pluriel et pour juger si une mesure tombe « rond ».
+function compteNum(x){
+  if(x < 0.75) return 0.5;
+  return x < 3 ? Math.round(x*2)/2 : Math.round(x);
 }
 function fmtCompte(x){
   if(x < 0.75) return '½';
   const r = x < 3 ? Math.round(x*2)/2 : Math.round(x);
   return r.toString().replace('.5',' ½');
 }
+// Renvoie UN seul repère, le plus simple à réaliser.
 function equivMenages(nm, montant, unite){
+  // Aliment qui se compte à la pièce : on parle en nombre d'éléments (« 2 carottes »)
+  // plutôt qu'en poignées — plus clair, et jamais de décompte qui s'emballe.
+  const pc = pieceDe(nm, unite);
+  if(pc){
+    const n = montant / pc.g;
+    if(n >= 0.4) return [`≈ ${fmtCompte(n)} ${compteNum(n) >= 2 ? pc.p : pc.u}`];
+  }
   const cat = categorieAliment(nm, unite);
   const reperes = REPERES[cat] || REPERES.legume;
-  const sortie = [];
-  let secours = null;
-  reperes.forEach(([cle, g])=>{
+  const cand = reperes.map(([cle, g])=>{
     const n = montant / g;
+    const c = compteNum(n);
     const m = MESURE[cle];
-    const arrondi = n < 3 ? Math.round(n*2)/2 : Math.round(n);   // même arrondi que fmtCompte
-    const pluriel = arrondi >= 2;                                 // « 1 verre et demi » reste au singulier
-    const item = `≈ ${fmtCompte(n)} ${pluriel ? m.p : m.u}`;
-    if(!secours) secours = item;
-    if(n >= 0.4 && n <= 12) sortie.push(item);
+    return { n, demi: (c % 1 !== 0), txt:`≈ ${fmtCompte(n)} ${c >= 2 ? m.p : m.u}` };
   });
-  if(!sortie.length && secours) sortie.push(secours);
-  return sortie;
+  // On ne garde qu'un repère : priorité aux quantités entières (une demi-cuillère
+  // est moins pratique qu'une cuillère pleine — ex. « 2 c. à café » plutôt que
+  // « ½ c. à soupe »), puis au plus petit nombre d'unités.
+  const dansPlage = cand.filter(x=>x.n >= 0.4 && x.n <= 12);
+  const choix = (dansPlage.length ? dansPlage : cand)
+    .sort((a,b)=> (a.demi - b.demi) || (a.n - b.n))[0];
+  return choix ? [choix.txt] : [];
 }
 function ouvreEquiv(payload){
   if(document.querySelector('.sheet-ov')) return;   // une seule fiche à la fois
