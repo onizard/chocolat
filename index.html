@@ -265,6 +265,12 @@ input[type=number],input[type=date],select{
 .meal-n{font-weight:600;font-size:15.5px;line-height:1.3;margin-bottom:8px}
 .ing{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;padding:3px 0;color:var(--encre2)}
 .ing .q{font-family:"Space Mono",monospace;color:var(--encre);white-space:nowrap}
+.ing .q.q-eq{cursor:pointer;border-bottom:1px dashed var(--encre3);padding-bottom:1px}
+.eq-exact{font-family:"Space Mono",monospace;font-size:14px;color:var(--encre2);margin:-6px 0 14px}
+.eq-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.eq-row{font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:17px;
+  background:var(--sable);border:1px solid var(--trait);border-radius:12px;padding:12px 14px}
+.eq-astuce{font-size:12px;color:var(--encre3);margin:2px 0 10px;line-height:1.4}
 .note{font-size:12.5px;color:var(--encre2);background:var(--sable);border-radius:8px;padding:9px 11px;margin-top:10px;line-height:1.45}
 
 .jeune-chip{padding:4px 9px;border:1px solid var(--trait);border-radius:999px;font-size:10.5px;
@@ -425,6 +431,7 @@ const defaultProfil = {
   regime:[],
   jeune:{}, accessoires:['halteres','elastique','banc'], courses:{jours:7, coches:{}}, inventaire:{}, valides:{},
   dispo: JOURS.map((_,i)=>({on: i<5 && i%2===0 ? true : (i===5), creneau: i===5?'matin':'soir', minutes: i===5?55:50})),
+  notif:{on:false, eau:true, sport:true, repas:true},
   depart: todayISO()
 };
 
@@ -1010,6 +1017,30 @@ function vueProfil(){
     ` : ''}
   </div>
 
+  <h2 class="sect-title">Rappels du jour</h2>
+  <div class="card">
+    <div class="day">
+      <div class="day-top">
+        <div class="day-name">Notifications humoristiques</div>
+        <button class="tog" data-notif="on" aria-pressed="${!!(P.notif&&P.notif.on)}" aria-label="Activer les notifications"></button>
+      </div>
+    </div>
+    <div class="note" style="margin:8px 0 ${(P.notif&&P.notif.on)?'12px':'0'}">
+      Un petit mot qui pique à chaque instant de la journée — hydratation, séance, repas.
+      Elles se déclenchent quand l'app est ouverte ou en arrière-plan (pas de serveur : rien à installer côté cloud).
+      ${Notifs.dispo() && Notifs.permission()==='denied'
+        ? '<br><b style="color:var(--rouge)">Le navigateur a bloqué les notifications</b> — réautorise-les dans les réglages du site pour ce téléphone.'
+        : ''}
+      ${!Notifs.dispo() ? '<br><b style="color:var(--rouge)">Ce navigateur ne gère pas les notifications.</b> Sur iPhone, installe d\'abord l\'app sur l\'écran d\'accueil.' : ''}
+    </div>
+    ${(P.notif&&P.notif.on)?`
+    <div class="chips">
+      ${[['eau','💧 Hydratation'],['sport','💪 Séance'],['repas','🍽️ Repas']].map(([v,l])=>
+        `<button class="chip" data-notifcat="${v}" aria-pressed="${P.notif[v]!==false}">${l}</button>`).join('')}
+    </div>
+    <button class="cta ghost" data-act="testnotif" style="margin-top:12px">Tester une notification</button>
+    `:''}
+  </div>
 
   <h2 class="sect-title">Repères techniques</h2>
   <div class="card">
@@ -1153,7 +1184,13 @@ function vueSemaine(){
           <button class="jeune-chip valide ${estValide(i,o.key)?'on':''}" data-valide="${i}|${o.key}" aria-pressed="${estValide(i,o.key)}">${estValide(i,o.key)?'✓ Pris':'Valider'}</button>
           <button class="jeune-chip" data-jeune="${o.key}" aria-pressed="false">Jeûner</button></div>
         <div class="meal-n">${o.m.n}</div>
-        ${ingredients(o.m).map(([nm,q,u])=>`<div class="ing"><span>${nm}</span><span class="q">${qte(q,o.scale,u)}${u==='u'||u==='pincée'?'':u}</span></div>`).join('')}
+        ${ingredients(o.m).map(([nm,q,u])=>{
+          const eq = (u==='g'||u==='ml');
+          const v = q*o.scale;
+          const affiche = v>=40 ? Math.round(v/5)*5 : Math.round(v);   // même arrondi que qte(), pour que carte et fiche coïncident
+          const data = eq ? ` data-eq="${affiche}|${u}|${encodeURIComponent(nm)}" title="Voir l'équivalent en cuillères, poignées ou verres"` : '';
+          return `<div class="ing"><span>${nm}</span><span class="q${eq?' q-eq':''}"${data}>${qte(q,o.scale,u)}${u==='u'||u==='pincée'?'':u}</span></div>`;
+        }).join('')}
         ${o.scale>1.55?`<div class="note">Portion nettement augmentée pour absorber le report. Si elle passe mal, scinde-la en deux prises rapprochées.</div>`:''}
       </div>`;
 
@@ -1169,6 +1206,7 @@ function vueSemaine(){
       </button>
       ${open?`<div class="sess-body">
         <div class="eau-total">${ico('goutte','var(--bleu-eau)')} <b>${c.eau} L</b> · ${hydratation(+c.eau, null).reduce((s,p)=>s+p.n,0)} verres de ${VERRE} ml, répartis ci-dessous</div>
+        <div class="eq-astuce">Astuce : touche le poids d'un aliment pour l'estimer sans balance — en cuillères, poignées ou verres.</div>
         ${j.nbJeune?`<div class="note" style="margin-top:0">${j.nbJeune} repas jeûné${j.nbJeune>1?'s':''} : calories reportées sur les autres, pour tous les jours.</div>`:''}
         ${j.manque>120 && j.tot>0?`<div class="note" style="background:var(--ambre-pale)"><b>Il manque ${Math.round(j.manque)} kcal.</b> Les repas restants ne peuvent pas absorber tout le report sans devenir irréalistes.</div>`:''}
         ${j.tot>0 && j.tot<c.plancher?`<div class="note" style="background:var(--rouge-pale)">Le total descend sous le plancher de ${c.plancher.toLocaleString('fr-FR')} kcal calculé pour toi. Un déficit plus creux fait perdre du muscle, pas plus de graisse.</div>`:''}
@@ -1557,6 +1595,110 @@ function ouvreAchat(k, besoin){
     }
     el.remove();
     if(act !== 'no'){ await save(); render(); }
+  });
+}
+
+/* ---------- équivalences ménagères ----------
+   Peser chaque aliment est contraignant. En touchant un poids, on
+   propose des repères approximatifs — cuillères, poignées, verres,
+   paume de la main — pour estimer sans balance. Volontairement
+   indicatifs : l'à-peu-près réellement suivi vaut mieux que la
+   pesée exacte qu'on finit par abandonner. */
+const MESURE = {
+  cs:      {u:'c. à soupe',       p:'c. à soupe'},
+  cc:      {u:'c. à café',        p:'c. à café'},
+  verre:   {u:'verre',            p:'verres'},
+  poignee: {u:'poignée',          p:'poignées'},
+  paume:   {u:'paume de la main', p:'paumes de la main'},
+  carre:   {u:'carré',            p:'carrés'},
+  tranche: {u:'tranche',          p:'tranches'}
+};
+// Pour chaque famille d'aliment : [clé de mesure, grammes (ou ml) pour UNE mesure].
+const REPERES = {
+  huile:      [['cs',13],['cc',4.5]],
+  pate:       [['cs',16],['cc',5.5]],
+  poudre:     [['cs',8],['cc',3]],
+  laitage:    [['verre',150],['cs',20]],
+  graines:    [['cs',10],['cc',3.5]],
+  oleagineux: [['poignee',30],['cs',12]],
+  flocons:    [['poignee',25],['cs',10]],
+  cereale:    [['poignee',40],['cs',18]],
+  baies:      [['poignee',40],['cs',15]],
+  feuilles:   [['poignee',25]],
+  olives:     [['cs',12],['cc',4]],
+  fromage:    [['cs',15]],
+  proteine:   [['paume',110]],
+  chocolat:   [['carre',5]],
+  pain:       [['tranche',30]],
+  liquide:    [['verre',200],['cs',15]],
+  legume:     [['poignee',80]]
+};
+function categorieAliment(nm, unite){
+  if(unite === 'ml') return 'liquide';
+  const s = (nm||'').toLowerCase();
+  const has = (...xs)=>xs.some(x=>s.indexOf(x) >= 0);
+  if(has('huile')) return 'huile';
+  if(has('beurre de cacahu','purée d','puree d')) return 'pate';
+  if(has('whey','protéine','proteine','protein')) return 'poudre';
+  if(has('skyr','fromage blanc','yaourt','fromage frais')) return 'laitage';
+  if(has('graines','chia','sésame','sesame')) return 'graines';
+  if(has('amande','noix','noisette','pécan','pecan','cajou')) return 'oleagineux';
+  if(has('flocons','avoine')) return 'flocons';
+  if(has('riz','quinoa','boulgour','semoule','polenta','lentille','nouille','pâtes','pates','couscous','épeautre','epeautre','maïs','mais')) return 'cereale';
+  if(has('myrtille','fraise','framboise','mûre','mure','cassis','baie')) return 'baies';
+  if(has('épinard','epinard','mâche','mache','roquette','salade','pak cho','cresson')) return 'feuilles';
+  if(has('olive')) return 'olives';
+  if(has('feta','parmesan','mozzarella','comté','comte','gruyère','gruyere')) return 'fromage';
+  if(has('chocolat')) return 'chocolat';
+  if(has('pain','tortilla','galette','tartine','biscotte')) return 'pain';
+  if(has('poulet','dinde','bœuf','boeuf','steak','saumon','cabillaud','colin','truite','maquereau','thon','crevette','tofu','tempeh','poisson','viande','jambon','œuf','oeuf')) return 'proteine';
+  return 'legume';
+}
+function fmtCompte(x){
+  if(x < 0.75) return '½';
+  const r = x < 3 ? Math.round(x*2)/2 : Math.round(x);
+  return r.toString().replace('.5',' ½');
+}
+function equivMenages(nm, montant, unite){
+  const cat = categorieAliment(nm, unite);
+  const reperes = REPERES[cat] || REPERES.legume;
+  const sortie = [];
+  let secours = null;
+  reperes.forEach(([cle, g])=>{
+    const n = montant / g;
+    const m = MESURE[cle];
+    const arrondi = n < 3 ? Math.round(n*2)/2 : Math.round(n);   // même arrondi que fmtCompte
+    const pluriel = arrondi >= 2;                                 // « 1 verre et demi » reste au singulier
+    const item = `≈ ${fmtCompte(n)} ${pluriel ? m.p : m.u}`;
+    if(!secours) secours = item;
+    if(n >= 0.4 && n <= 12) sortie.push(item);
+  });
+  if(!sortie.length && secours) sortie.push(secours);
+  return sortie;
+}
+function ouvreEquiv(payload){
+  if(document.querySelector('.sheet-ov')) return;   // une seule fiche à la fois
+  const [gStr, unite, encnm] = payload.split('|');
+  const nm = decodeURIComponent(encnm);
+  const montant = parseFloat(gStr) || 0;
+  const uAff = unite === 'ml' ? 'ml' : 'g';
+  const eqs = equivMenages(nm, montant, unite);
+  const el = document.createElement('div');
+  el.className = 'sheet-ov';
+  el.innerHTML = `
+    <div class="sheet">
+      <div class="eyebrow">Repères sans balance</div>
+      <div class="sheet-nm">${nm}</div>
+      <div class="eq-exact">Portion visée : ${Math.round(montant)} ${uAff}</div>
+      <div class="eq-list">
+        ${eqs.map(e=>`<div class="eq-row">${e}</div>`).join('')}
+      </div>
+      <div class="note" style="margin-top:0">Repères approximatifs, de quoi se passer de la balance au quotidien. Pour un suivi précis, la pesée reste plus juste.</div>
+      <button class="cta ghost" data-sh="no">Fermer</button>
+    </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', (ev)=>{
+    if(ev.target.closest('[data-sh]') || ev.target === el) el.remove();
   });
 }
 
@@ -2047,13 +2189,14 @@ function render(toTop){
   document.getElementById('nav').style.display = onboarding?'none':'flex';
   if(toTop) window.scrollTo(0,0);
   else window.scrollTo(0,y);
+  if(typeof Notifs !== 'undefined') Notifs.planifier();
 }
 
 /* ============================================================
    ÉVÉNEMENTS
    ============================================================ */
 document.addEventListener('click', async (ev)=>{
-  const t = ev.target.closest('[data-tab],[data-set],[data-day],[data-reg],[data-acc],[data-infos],[data-act],[data-toggle],[data-del],[data-jeune],[data-jours],[data-coche],[data-seance],[data-valide],[data-achat],[data-vider],[data-delimg]');
+  const t = ev.target.closest('[data-tab],[data-set],[data-day],[data-reg],[data-acc],[data-infos],[data-act],[data-toggle],[data-del],[data-jeune],[data-jours],[data-coche],[data-seance],[data-valide],[data-achat],[data-vider],[data-delimg],[data-notif],[data-notifcat],[data-eq]');
   if(!t) return;
 
   if(t.dataset.tab){ tab=t.dataset.tab; render(true); return; }
@@ -2064,6 +2207,23 @@ document.addEventListener('click', async (ev)=>{
   if(t.dataset.set){ P[t.dataset.set]=t.dataset.val; await save(); render(); return; }
   if(t.dataset.day!==undefined){
     const i=+t.dataset.day; P.dispo[i].on=!P.dispo[i].on; await save(); render(); return;
+  }
+  if(t.dataset.notif){
+    P.notif = P.notif || {on:false, eau:true, sport:true, repas:true};
+    if(!P.notif.on){
+      const ok = await Notifs.activer();
+      if(!ok){ render(); return; }
+      P.notif.on = true; toast('Rappels activés');
+    } else {
+      P.notif.on = false; toast('Rappels désactivés');
+    }
+    await save(); render(); return;
+  }
+  if(t.dataset.notifcat){
+    P.notif = P.notif || {on:false, eau:true, sport:true, repas:true};
+    const v = t.dataset.notifcat;
+    P.notif[v] = P.notif[v] === false ? true : false;
+    await save(); render(); return;
   }
   if(t.dataset.valide){
     const [jour, key] = t.dataset.valide.split('|');
@@ -2079,6 +2239,7 @@ document.addEventListener('click', async (ev)=>{
     }
     await save(); render(); return;
   }
+  if(t.dataset.eq){ ouvreEquiv(t.dataset.eq); return; }
   if(t.dataset.achat){ ouvreAchat(t.dataset.achat, t.dataset.besoin); return; }
   if(t.dataset.vider){
     delete stock()[t.dataset.vider];
@@ -2147,6 +2308,7 @@ document.addEventListener('click', async (ev)=>{
     journal = journal.filter(e=>e.d!==t.dataset.del); await save(); render(); return;
   }
   const a=t.dataset.act;
+  if(a==='testnotif'){ Notifs.test(); return; }
   if(a==='start'){ onboarding=false; tab='profil'; await save(); render(true); toast('Renseigne tes chiffres, puis va dans « Semaine »'); return; }
   if(a==='install'){
     if(!promptInstall){ toast('Utilise le menu ⋮ de Chrome → « Installer l\'application »'); return; }
@@ -2214,6 +2376,141 @@ document.addEventListener('change', async (ev)=>{
     await save(); render();
   }
 });
+
+/* ============================================================
+   NOTIFICATIONS — rappels humoristiques par événement
+   ------------------------------------------------------------
+   L'app n'a pas de serveur : on ne peut pas « pousser » une
+   notification quand l'onglet est fermé. On planifie donc, avec
+   setTimeout, les rappels des événements encore à venir dans la
+   journée. Ils se déclenchent tant que l'app reste ouverte ou en
+   arrière-plan. À chaque rendu et à chaque retour au premier plan,
+   on replanifie pour coller au profil courant.
+   ============================================================ */
+const Notifs = (function(){
+  // Une phrase est tirée au hasard à chaque déclenchement.
+  const PHRASES = {
+    eau: [
+      "T'as pas soif là ?",
+      "Je peux vous offrir un verre… d'eau ?",
+      "Tu n'oublieras point de t'hydrater…",
+      "T'hydrater tu devras…",
+      "Le sport, c'est de l'eau.",
+      "J'ai un message de tes reins : ON A SOIFFFF !",
+      "Allez, bois, bois, bois, bois…",
+      "Qu'est-ce que tu consommes comme eau ! Continue comme ça 👌",
+      "Bravo, tu commences à avoir de la bouteille 😏",
+      "Je peux vous payer en liquide ?",
+      "Petit verre d'eau, grand pas pour ton ventre.",
+      "Ton corps t'envoie un SMS : 💧💧💧",
+      "H2Oui ou H2Non ?"
+    ],
+    sport: [
+      "C'est l'heure de brûler de la graisse 🔥",
+      "On travaille ta sangle ?",
+      "Prochain vacuum : ton nombril touche ta colonne vertébrale !",
+      "Petite séance ?",
+      "Ta motivation, elle sporte bien ?",
+      "Vite, la séance va bientôt commencer.",
+      "Le canapé peut attendre, tes abdos non 💪",
+      "On transpire un peu ? Juste un peu ? 😅",
+      "Ton transverse t'attend."
+    ],
+    repas: [
+      "C'est l'heure du buffet 🍽️",
+      "L'appétit vient en mangeant.",
+      "On mange un bout ?",
+      "La mangeaille ?",
+      "On mange au resto ce midi ?",
+      "On fait le plein de protéines ?",
+      "À table ! Les protéines n'attendent pas.",
+      "Miam o'clock 🍽️",
+      "Ton corps réclame du carburant."
+    ]
+  };
+  const META = {
+    eau:   {emoji:'💧', tag:'choco-eau'},
+    sport: {emoji:'💪', tag:'choco-sport'},
+    repas: {emoji:'🍽️', tag:'choco-repas'}
+  };
+
+  const dispo = () => ('Notification' in window);
+  const permission = () => dispo() ? Notification.permission : 'denied';
+  const catActive = (n, cat) => n && n[cat] !== false;
+  const phrase = (cat) => { const l = PHRASES[cat]; return l[Math.floor(Math.random()*l.length)]; };
+
+  // Événements du jour courant, sous forme {min, cat}. Reprend la même
+  // logique horaire que la timeline de « Ta semaine ».
+  function evenementsDuJour(){
+    const c = calculs(P);
+    const plan = buildSemaine();
+    const today = (new Date().getDay()+6)%7;
+    const d = plan[today];
+    const seance = d.blocs.length > 0;
+    const H = {matin:420, midi:750, soir:1170};
+    const evs = [];
+    evs.push({min:390, cat:'sport'});                       // marche à jeun
+    if(seance) evs.push({min:H[d.creneau], cat:'sport'});   // séance guidée
+    const J = P.jeune || {};
+    [['pdj',480],['dej',795],['col',990],['din',1230]].forEach(([k,min])=>{ if(!J[k]) evs.push({min, cat:'repas'}); });
+    hydratation(+c.eau, seance ? d.creneau : null).forEach(p=>evs.push({min:p.min, cat:'eau'}));
+    return evs;
+  }
+
+  function montre(cat, texte){
+    const meta = META[cat];
+    const titre = meta.emoji + ' ' + texte;
+    const opts = { body:'Chocolat 🍫', icon:'./icon-192.png', badge:'./icon-192.png', tag:meta.tag, renotify:true, lang:'fr' };
+    const secours = () => { try{ new Notification(titre, opts); }catch(e){} };
+    if(navigator.serviceWorker && navigator.serviceWorker.ready){
+      navigator.serviceWorker.ready.then(reg=>reg.showNotification(titre, opts)).catch(secours);
+    } else secours();
+  }
+
+  let timers = [];
+  function planifier(){
+    timers.forEach(clearTimeout);
+    timers = [];
+    if(!P || onboarding) return;
+    const n = P.notif;
+    if(!n || !n.on) return;
+    if(permission() !== 'granted') return;
+
+    const now = new Date();
+    const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
+    evenementsDuJour().forEach(e=>{
+      if(!catActive(n, e.cat)) return;
+      const delai = (e.min - nowMin) * 60000;
+      if(delai <= 0 || delai > 24*3600000) return;
+      timers.push(setTimeout(()=>montre(e.cat, phrase(e.cat)), delai));
+    });
+    // Peu après minuit, on replanifie pour la nouvelle journée.
+    const versMinuit = (24*60 - nowMin) * 60000 + 60000;
+    timers.push(setTimeout(planifier, Math.max(versMinuit, 60000)));
+  }
+
+  // Demande l'autorisation au navigateur. Renvoie true si accordée.
+  async function activer(){
+    if(!dispo()){ toast('Notifications non disponibles ici'); return false; }
+    let perm = Notification.permission;
+    if(perm === 'default'){ try{ perm = await Notification.requestPermission(); }catch(e){ perm = 'denied'; } }
+    if(perm !== 'granted'){ toast('Notifications refusées par le navigateur'); return false; }
+    return true;
+  }
+
+  function test(){
+    if(permission() !== 'granted'){ toast('Active d\'abord les rappels'); return; }
+    const cats = ['eau','sport','repas'];
+    const cat = cats[Math.floor(Math.random()*cats.length)];
+    montre(cat, phrase(cat));
+  }
+
+  return { planifier, activer, test, dispo, permission };
+})();
+
+// Replanifie quand l'app revient au premier plan (les timers longs
+// peuvent être suspendus en arrière-plan sur certains systèmes).
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) Notifs.planifier(); });
 
 /* ============================================================
    INSTALLATION (PWA)
