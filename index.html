@@ -1293,7 +1293,7 @@ function qteCourse(q,u){
   return Math.round(q/5)*5+' g';
 }
 
-const DUREES = [[7,'1 sem.'],[14,'2 sem.'],[21,'3 sem.'],[30,'1 mois']];
+const DUREES = [[0,"Aujourd'hui"],[7,'1 sem.'],[14,'2 sem.'],[21,'3 sem.'],[30,'1 mois']];
 
 /* ============================================================
    INVENTAIRE
@@ -1347,11 +1347,15 @@ function retireDuStock(o){
 }
 
 function vueCourses(){
-  const n = (P.courses && P.courses.jours) || 7;
+  // 0 = « Aujourd'hui » (menu du jour courant uniquement). Attention : 0 || 7 vaut 7,
+  // d'où le test explicite sur null.
+  const n = (P.courses && P.courses.jours != null) ? P.courses.jours : 7;
   const coches = (P.courses && P.courses.coches) || {};
+  const today = (new Date().getDay()+6)%7;
+  const indices = n===0 ? [today] : Array.from({length:n}, (_,i)=>i);
   const agg = {};
   let kcal = 0, repasJeunes = 0;
-  for(let i=0;i<n;i++){
+  indices.forEach(i=>{
     const j = menuDuJour(i);
     kcal += j.tot; repasJeunes += j.nbJeune;
     j.out.forEach(o=>{
@@ -1363,7 +1367,7 @@ function vueCourses(){
         agg[k].q += q*o.scale;
       });
     });
-  }
+  });
   const lignes = Object.keys(agg).map(k=>({k, ...agg[k], r:rayon(agg[k].nm)}));
   const total = lignes.length, faits = lignes.filter(l=>coches[l.k]).length;
 
@@ -1373,12 +1377,13 @@ function vueCourses(){
     <div style="display:flex;gap:16px;align-items:baseline;margin-top:8px">
       <div><div class="bignum" style="font-size:30px">${total}</div><div style="font-size:11.5px;color:var(--encre3)">articles</div></div>
       <div><div class="bignum" style="font-size:30px;color:var(--teal)">${faits}</div><div style="font-size:11.5px;color:var(--encre3)">dans le panier</div></div>
-      <div><div class="bignum" style="font-size:30px">${n}</div><div style="font-size:11.5px;color:var(--encre3)">jours couverts</div></div>
+      <div><div class="bignum" style="font-size:30px">${n===0?'1':n}</div><div style="font-size:11.5px;color:var(--encre3)">${n===0?'aujourd\'hui':'jours couverts'}</div></div>
     </div>
     <div style="margin-top:14px">
       <span class="eyebrow" style="display:block;margin-bottom:6px">Durée couverte</span>
       <div class="seg">${DUREES.map(([v,l])=>`<button data-jours="${v}" aria-pressed="${n===v}">${l}</button>`).join('')}</div>
     </div>
+    ${n===0?`<div class="note">Uniquement les ingrédients du programme d'aujourd'hui (${JOURS[today]}), repas jeûnés déduits.</div>`:''}
     ${n>=14?`<div class="note">Sur cette durée, ne prends frais que la première semaine — congèle les protéines et achète les légumes au fur et à mesure.</div>`:''}
   </div>
 
