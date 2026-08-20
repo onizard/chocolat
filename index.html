@@ -432,6 +432,7 @@ const defaultProfil = {
   jeune:{}, accessoires:['halteres','elastique','banc'], courses:{jours:7, coches:{}}, inventaire:{}, valides:{},
   dispo: JOURS.map((_,i)=>({on: i<5 && i%2===0 ? true : (i===5), creneau: i===5?'matin':'soir', minutes: i===5?55:50})),
   notif:{on:false, eau:true, sport:true, repas:true},
+  saison:true,
   depart: todayISO()
 };
 
@@ -813,6 +814,39 @@ function ingredients(m){
   });
 }
 
+/* ---------- saisonnalité ----------
+   Calendrier indicatif France (mois 1–12) des fruits et légumes cultivés
+   localement. Ce qui n'est pas listé (carotte, pomme de terre) est
+   disponible quasi toute l'année ; les produits importés hors-saison
+   locale (banane, citron, avocat, olives) ne sont pas contraints. */
+const SAISON = {
+  'tomate':        [6,7,8,9],
+  'courgette':     [5,6,7,8,9],
+  'aubergine':     [6,7,8,9],
+  'concombre':     [5,6,7,8,9],
+  'brocoli':       [6,7,8,9,10,11],
+  'haricots verts':[6,7,8,9],
+  'épinard':       [1,2,3,4,5,9,10,11,12],   // monte en graine l'été
+  'fenouil':       [6,7,8,9,10],
+  'mâche':         [9,10,11,12,1,2,3],
+  'pak choï':      [4,5,9,10,11],
+  'ratatouille':   [6,7,8,9],                // mélange de légumes d'été
+  'patate douce':  [9,10,11,12,1,2],
+  'fraise':        [5,6,7],
+  'framboise':     [6,7,8,9],
+  'myrtille':      [7,8,9],
+  'orange':        [11,12,1,2,3,4],
+  'kiwi':          [11,12,1,2,3,4,5]
+};
+const MOIS_NOM = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+function estDeSaison(m, mois){
+  return m.ing.every(([nm])=>{
+    const l = nm.toLowerCase();
+    for(const k in SAISON){ if(l.indexOf(k) >= 0) return SAISON[k].indexOf(mois) >= 0; }
+    return true;
+  });
+}
+
 function filtreRepas(liste, soir){
   const r = P.regime||[];
   const a = (m,t) => m.tags.indexOf(t) >= 0;
@@ -831,6 +865,12 @@ function filtreRepas(liste, soir){
     if(r.includes('sansGluten')  && a(m,'gluten')) return false;
     return true;
   });
+  // Privilégie les recettes de saison, en gardant assez de choix pour la variété.
+  if(P.saison !== false){
+    const mois = new Date().getMonth() + 1;
+    const s = out.filter(m=>estDeSaison(m, mois));
+    if(s.length >= 3) out = s;
+  }
   if(soir){
     const calmes = out.filter(m=>m.calme);
     if(calmes.length>=3) out = calmes;
@@ -1002,6 +1042,17 @@ function vueProfil(){
     <div class="note"><b>Cacher</b> : pas de porc, uniquement les poissons à nageoires et écailles — donc ni crustacés, ni fruits de mer —, et jamais viande et produit laitier dans un même repas. L'application trie les catégories d'aliments ; la <b>cacherout d'un produit dépend aussi de son abattage et de sa certification</b>, que je ne peux pas vérifier — attention notamment aux fromages, dont la présure est souvent animale.</div>
     <div class="note"><b>Halal</b> : pas de porc ni d'alcool, y compris en cuisson. J'écarte aussi les crustacés par prudence : les écoles chaféite, malikite et hanbalite autorisent tous les animaux marins, mais l'école hanafite se limite aux poissons. Là encore, la viande doit être issue d'un <b>abattage rituel</b> que l'application ne peut pas garantir.</div>
     <div class="note" style="margin-top:10px"><b>« Digestion sensible »</b> remplace les aliments les plus fermentescibles par des équivalents de même valeur calorique : brocolis → haricots verts, patate douce → pommes de terre, lentilles → quinoa, blé → épeautre au levain ou maïs, ratatouille → sans oignon ni ail. À activer seulement si ton ventre gonfle en journée — sinon tu perds des fibres et de la variété pour rien.</div>`:''}
+  </div>
+
+  <h2 class="sect-title">Saisonnalité</h2>
+  <div class="card">
+    <div class="day">
+      <div class="day-top">
+        <div class="day-name">Fruits et légumes de saison</div>
+        <button class="tog" data-saison="1" aria-pressed="${P.saison!==false}" aria-label="Privilégier les aliments de saison"></button>
+      </div>
+    </div>
+    <div class="note" style="margin:8px 0 0">Privilégie les recettes dont les fruits et légumes sont de saison (repères France, ${MOIS_NOM[new Date().getMonth()]}). Meilleur pour le goût et pour l'empreinte carbone. Les menus s'adaptent au mois courant.</div>
   </div>
 
   <h2 class="sect-title">Matériel</h2>
@@ -2237,7 +2288,7 @@ function render(toTop){
    ÉVÉNEMENTS
    ============================================================ */
 document.addEventListener('click', async (ev)=>{
-  const t = ev.target.closest('[data-tab],[data-set],[data-day],[data-reg],[data-acc],[data-infos],[data-act],[data-toggle],[data-del],[data-jeune],[data-jours],[data-coche],[data-seance],[data-valide],[data-achat],[data-vider],[data-delimg],[data-notif],[data-notifcat],[data-eq]');
+  const t = ev.target.closest('[data-tab],[data-set],[data-day],[data-reg],[data-acc],[data-infos],[data-act],[data-toggle],[data-del],[data-jeune],[data-jours],[data-coche],[data-seance],[data-valide],[data-achat],[data-vider],[data-delimg],[data-notif],[data-notifcat],[data-eq],[data-saison]');
   if(!t) return;
 
   if(t.dataset.tab){ tab=t.dataset.tab; render(true); return; }
@@ -2265,6 +2316,12 @@ document.addEventListener('click', async (ev)=>{
     const v = t.dataset.notifcat;
     P.notif[v] = P.notif[v] === false ? true : false;
     await save(); render(); return;
+  }
+  if(t.dataset.saison){
+    P.saison = P.saison === false ? true : false;
+    await save(); render();
+    toast(P.saison ? 'Menus calés sur la saison' : 'Saisonnalité désactivée');
+    return;
   }
   if(t.dataset.valide){
     const [jour, key] = t.dataset.valide.split('|');
