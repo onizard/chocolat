@@ -265,6 +265,12 @@ input[type=number],input[type=date],select{
 .meal-n{font-weight:600;font-size:15.5px;line-height:1.3;margin-bottom:8px}
 .ing{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;padding:3px 0;color:var(--encre2)}
 .ing .q{font-family:"Space Mono",monospace;color:var(--encre);white-space:nowrap}
+.ing .q.q-eq{cursor:pointer;border-bottom:1px dashed var(--encre3);padding-bottom:1px}
+.eq-exact{font-family:"Space Mono",monospace;font-size:14px;color:var(--encre2);margin:-6px 0 14px}
+.eq-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.eq-row{font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:17px;
+  background:var(--sable);border:1px solid var(--trait);border-radius:12px;padding:12px 14px}
+.eq-astuce{font-size:12px;color:var(--encre3);margin:2px 0 10px;line-height:1.4}
 .note{font-size:12.5px;color:var(--encre2);background:var(--sable);border-radius:8px;padding:9px 11px;margin-top:10px;line-height:1.45}
 
 .jeune-chip{padding:4px 9px;border:1px solid var(--trait);border-radius:999px;font-size:10.5px;
@@ -1178,7 +1184,11 @@ function vueSemaine(){
           <button class="jeune-chip valide ${estValide(i,o.key)?'on':''}" data-valide="${i}|${o.key}" aria-pressed="${estValide(i,o.key)}">${estValide(i,o.key)?'✓ Pris':'Valider'}</button>
           <button class="jeune-chip" data-jeune="${o.key}" aria-pressed="false">Jeûner</button></div>
         <div class="meal-n">${o.m.n}</div>
-        ${ingredients(o.m).map(([nm,q,u])=>`<div class="ing"><span>${nm}</span><span class="q">${qte(q,o.scale,u)}${u==='u'||u==='pincée'?'':u}</span></div>`).join('')}
+        ${ingredients(o.m).map(([nm,q,u])=>{
+          const eq = (u==='g'||u==='ml');
+          const data = eq ? ` data-eq="${Math.round(q*o.scale)}|${u}|${encodeURIComponent(nm)}" role="button" tabindex="0" title="Voir l'équivalent en cuillères, poignées ou verres"` : '';
+          return `<div class="ing"><span>${nm}</span><span class="q${eq?' q-eq':''}"${data}>${qte(q,o.scale,u)}${u==='u'||u==='pincée'?'':u}</span></div>`;
+        }).join('')}
         ${o.scale>1.55?`<div class="note">Portion nettement augmentée pour absorber le report. Si elle passe mal, scinde-la en deux prises rapprochées.</div>`:''}
       </div>`;
 
@@ -1194,6 +1204,7 @@ function vueSemaine(){
       </button>
       ${open?`<div class="sess-body">
         <div class="eau-total">${ico('goutte','var(--bleu-eau)')} <b>${c.eau} L</b> · ${hydratation(+c.eau, null).reduce((s,p)=>s+p.n,0)} verres de ${VERRE} ml, répartis ci-dessous</div>
+        <div class="eq-astuce">Astuce : touche le poids d'un aliment pour l'estimer sans balance — en cuillères, poignées ou verres.</div>
         ${j.nbJeune?`<div class="note" style="margin-top:0">${j.nbJeune} repas jeûné${j.nbJeune>1?'s':''} : calories reportées sur les autres, pour tous les jours.</div>`:''}
         ${j.manque>120 && j.tot>0?`<div class="note" style="background:var(--ambre-pale)"><b>Il manque ${Math.round(j.manque)} kcal.</b> Les repas restants ne peuvent pas absorber tout le report sans devenir irréalistes.</div>`:''}
         ${j.tot>0 && j.tot<c.plancher?`<div class="note" style="background:var(--rouge-pale)">Le total descend sous le plancher de ${c.plancher.toLocaleString('fr-FR')} kcal calculé pour toi. Un déficit plus creux fait perdre du muscle, pas plus de graisse.</div>`:''}
@@ -1582,6 +1593,109 @@ function ouvreAchat(k, besoin){
     }
     el.remove();
     if(act !== 'no'){ await save(); render(); }
+  });
+}
+
+/* ---------- équivalences ménagères ----------
+   Peser chaque aliment est contraignant. En touchant un poids, on
+   propose des repères approximatifs — cuillères, poignées, verres,
+   paume de la main — pour estimer sans balance. Volontairement
+   indicatifs : l'à-peu-près réellement suivi vaut mieux que la
+   pesée exacte qu'on finit par abandonner. */
+const MESURE = {
+  cs:      {u:'c. à soupe',       p:'c. à soupe'},
+  cc:      {u:'c. à café',        p:'c. à café'},
+  verre:   {u:'verre',            p:'verres'},
+  poignee: {u:'poignée',          p:'poignées'},
+  paume:   {u:'paume de la main', p:'paumes de la main'},
+  carre:   {u:'carré',            p:'carrés'},
+  tranche: {u:'tranche',          p:'tranches'}
+};
+// Pour chaque famille d'aliment : [clé de mesure, grammes (ou ml) pour UNE mesure].
+const REPERES = {
+  huile:      [['cs',13],['cc',4.5]],
+  pate:       [['cs',16],['cc',5.5]],
+  poudre:     [['cs',8],['cc',3]],
+  laitage:    [['verre',150],['cs',20]],
+  graines:    [['cs',10],['cc',3.5]],
+  oleagineux: [['poignee',30],['cs',12]],
+  flocons:    [['poignee',25],['cs',10]],
+  cereale:    [['poignee',40],['cs',18]],
+  baies:      [['poignee',40],['cs',15]],
+  feuilles:   [['poignee',25]],
+  olives:     [['cs',12],['cc',4]],
+  fromage:    [['cs',15]],
+  proteine:   [['paume',110]],
+  chocolat:   [['carre',5]],
+  pain:       [['tranche',30]],
+  liquide:    [['verre',200],['cs',15]],
+  legume:     [['poignee',80]]
+};
+function categorieAliment(nm, unite){
+  if(unite === 'ml') return 'liquide';
+  const s = (nm||'').toLowerCase();
+  const has = (...xs)=>xs.some(x=>s.indexOf(x) >= 0);
+  if(has('huile')) return 'huile';
+  if(has('beurre de cacahu','purée d','puree d')) return 'pate';
+  if(has('whey','protéine','proteine','protein')) return 'poudre';
+  if(has('skyr','fromage blanc','yaourt','fromage frais')) return 'laitage';
+  if(has('graines','chia','sésame','sesame')) return 'graines';
+  if(has('amande','noix','noisette','pécan','pecan','cajou')) return 'oleagineux';
+  if(has('flocons','avoine')) return 'flocons';
+  if(has('riz','quinoa','boulgour','semoule','polenta','lentille','nouille','pâtes','pates','couscous','épeautre','epeautre','maïs','mais')) return 'cereale';
+  if(has('myrtille','fraise','framboise','mûre','mure','cassis','baie')) return 'baies';
+  if(has('épinard','epinard','mâche','mache','roquette','salade','pak cho','cresson')) return 'feuilles';
+  if(has('olive')) return 'olives';
+  if(has('feta','parmesan','mozzarella','comté','comte','gruyère','gruyere')) return 'fromage';
+  if(has('chocolat')) return 'chocolat';
+  if(has('pain','tortilla','galette','tartine','biscotte')) return 'pain';
+  if(has('poulet','dinde','bœuf','boeuf','steak','saumon','cabillaud','colin','truite','maquereau','thon','crevette','tofu','tempeh','poisson','viande','jambon','œuf','oeuf')) return 'proteine';
+  return 'legume';
+}
+function fmtCompte(x){
+  if(x < 0.75) return '½';
+  const r = x < 3 ? Math.round(x*2)/2 : Math.round(x);
+  return r.toString().replace('.5',' ½').replace(/^0 ½$/,'½');
+}
+function equivMenages(nm, montant, unite){
+  const cat = categorieAliment(nm, unite);
+  const reperes = REPERES[cat] || REPERES.legume;
+  const sortie = [];
+  let secours = null;
+  reperes.forEach(([cle, g])=>{
+    const n = montant / g;
+    const m = MESURE[cle];
+    const arrondi = n < 3 ? Math.round(n*2)/2 : Math.round(n);   // même arrondi que fmtCompte
+    const pluriel = arrondi >= 2;                                 // « 1 verre et demi » reste au singulier
+    const item = `≈ ${fmtCompte(n)} ${pluriel ? m.p : m.u}`;
+    if(!secours) secours = item;
+    if(n >= 0.4 && n <= 12) sortie.push(item);
+  });
+  if(!sortie.length && secours) sortie.push(secours);
+  return sortie;
+}
+function ouvreEquiv(payload){
+  const [gStr, unite, encnm] = payload.split('|');
+  const nm = decodeURIComponent(encnm);
+  const montant = parseFloat(gStr) || 0;
+  const uAff = unite === 'ml' ? 'ml' : 'g';
+  const eqs = equivMenages(nm, montant, unite);
+  const el = document.createElement('div');
+  el.className = 'sheet-ov';
+  el.innerHTML = `
+    <div class="sheet">
+      <div class="eyebrow">Repères sans balance</div>
+      <div class="sheet-nm">${nm}</div>
+      <div class="eq-exact">Portion visée : ${Math.round(montant)} ${uAff}</div>
+      <div class="eq-list">
+        ${eqs.map(e=>`<div class="eq-row">${e}</div>`).join('')}
+      </div>
+      <div class="note" style="margin-top:0">Repères approximatifs, de quoi se passer de la balance au quotidien. Pour un suivi précis, la pesée reste plus juste.</div>
+      <button class="cta ghost" data-sh="no">Fermer</button>
+    </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', (ev)=>{
+    if(ev.target.closest('[data-sh]') || ev.target === el) el.remove();
   });
 }
 
@@ -2079,7 +2193,7 @@ function render(toTop){
    ÉVÉNEMENTS
    ============================================================ */
 document.addEventListener('click', async (ev)=>{
-  const t = ev.target.closest('[data-tab],[data-set],[data-day],[data-reg],[data-acc],[data-infos],[data-act],[data-toggle],[data-del],[data-jeune],[data-jours],[data-coche],[data-seance],[data-valide],[data-achat],[data-vider],[data-delimg],[data-notif],[data-notifcat]');
+  const t = ev.target.closest('[data-tab],[data-set],[data-day],[data-reg],[data-acc],[data-infos],[data-act],[data-toggle],[data-del],[data-jeune],[data-jours],[data-coche],[data-seance],[data-valide],[data-achat],[data-vider],[data-delimg],[data-notif],[data-notifcat],[data-eq]');
   if(!t) return;
 
   if(t.dataset.tab){ tab=t.dataset.tab; render(true); return; }
@@ -2122,6 +2236,7 @@ document.addEventListener('click', async (ev)=>{
     }
     await save(); render(); return;
   }
+  if(t.dataset.eq){ ouvreEquiv(t.dataset.eq); return; }
   if(t.dataset.achat){ ouvreAchat(t.dataset.achat, t.dataset.besoin); return; }
   if(t.dataset.vider){
     delete stock()[t.dataset.vider];
@@ -2220,6 +2335,15 @@ document.addEventListener('click', async (ev)=>{
     await save(); tab='semaine'; render(true); toast('Profil enregistré'); return;
   }
   if(a==='reset'){ demandeEffacement(); return; }
+});
+
+// Poids cliquables au clavier (Entrée / Espace) pour l'accessibilité.
+document.addEventListener('keydown', (ev)=>{
+  if(ev.key !== 'Enter' && ev.key !== ' ') return;
+  const t = ev.target.closest && ev.target.closest('[data-eq]');
+  if(!t) return;
+  ev.preventDefault();
+  ouvreEquiv(t.dataset.eq);
 });
 
 // redimensionne et compresse avant stockage : une photo brute ferait plusieurs Mo
