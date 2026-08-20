@@ -1186,7 +1186,9 @@ function vueSemaine(){
         <div class="meal-n">${o.m.n}</div>
         ${ingredients(o.m).map(([nm,q,u])=>{
           const eq = (u==='g'||u==='ml');
-          const data = eq ? ` data-eq="${Math.round(q*o.scale)}|${u}|${encodeURIComponent(nm)}" role="button" tabindex="0" title="Voir l'équivalent en cuillères, poignées ou verres"` : '';
+          const v = q*o.scale;
+          const affiche = v>=40 ? Math.round(v/5)*5 : Math.round(v);   // même arrondi que qte(), pour que carte et fiche coïncident
+          const data = eq ? ` data-eq="${affiche}|${u}|${encodeURIComponent(nm)}" title="Voir l'équivalent en cuillères, poignées ou verres"` : '';
           return `<div class="ing"><span>${nm}</span><span class="q${eq?' q-eq':''}"${data}>${qte(q,o.scale,u)}${u==='u'||u==='pincée'?'':u}</span></div>`;
         }).join('')}
         ${o.scale>1.55?`<div class="note">Portion nettement augmentée pour absorber le report. Si elle passe mal, scinde-la en deux prises rapprochées.</div>`:''}
@@ -1655,7 +1657,7 @@ function categorieAliment(nm, unite){
 function fmtCompte(x){
   if(x < 0.75) return '½';
   const r = x < 3 ? Math.round(x*2)/2 : Math.round(x);
-  return r.toString().replace('.5',' ½').replace(/^0 ½$/,'½');
+  return r.toString().replace('.5',' ½');
 }
 function equivMenages(nm, montant, unite){
   const cat = categorieAliment(nm, unite);
@@ -1675,6 +1677,7 @@ function equivMenages(nm, montant, unite){
   return sortie;
 }
 function ouvreEquiv(payload){
+  if(document.querySelector('.sheet-ov')) return;   // une seule fiche à la fois
   const [gStr, unite, encnm] = payload.split('|');
   const nm = decodeURIComponent(encnm);
   const montant = parseFloat(gStr) || 0;
@@ -2335,15 +2338,6 @@ document.addEventListener('click', async (ev)=>{
     await save(); tab='semaine'; render(true); toast('Profil enregistré'); return;
   }
   if(a==='reset'){ demandeEffacement(); return; }
-});
-
-// Poids cliquables au clavier (Entrée / Espace) pour l'accessibilité.
-document.addEventListener('keydown', (ev)=>{
-  if(ev.key !== 'Enter' && ev.key !== ' ') return;
-  const t = ev.target.closest && ev.target.closest('[data-eq]');
-  if(!t) return;
-  ev.preventDefault();
-  ouvreEquiv(t.dataset.eq);
 });
 
 // redimensionne et compresse avant stockage : une photo brute ferait plusieurs Mo
