@@ -425,6 +425,7 @@ const defaultProfil = {
   regime:[],
   jeune:{}, accessoires:['halteres','elastique','banc'], courses:{jours:7, coches:{}}, inventaire:{}, valides:{},
   dispo: JOURS.map((_,i)=>({on: i<5 && i%2===0 ? true : (i===5), creneau: i===5?'matin':'soir', minutes: i===5?55:50})),
+  notif:{on:false, eau:true, sport:true, repas:true},
   depart: todayISO()
 };
 
@@ -1010,6 +1011,30 @@ function vueProfil(){
     ` : ''}
   </div>
 
+  <h2 class="sect-title">Rappels du jour</h2>
+  <div class="card">
+    <div class="day">
+      <div class="day-top">
+        <div class="day-name">Notifications humoristiques</div>
+        <button class="tog" data-notif="on" aria-pressed="${!!(P.notif&&P.notif.on)}" aria-label="Activer les notifications"></button>
+      </div>
+    </div>
+    <div class="note" style="margin:8px 0 ${(P.notif&&P.notif.on)?'12px':'0'}">
+      Un petit mot qui pique à chaque instant de la journée — hydratation, séance, repas.
+      Elles se déclenchent quand l'app est ouverte ou en arrière-plan (pas de serveur : rien à installer côté cloud).
+      ${Notifs.dispo() && Notifs.permission()==='denied'
+        ? '<br><b style="color:var(--rouge)">Le navigateur a bloqué les notifications</b> — réautorise-les dans les réglages du site pour ce téléphone.'
+        : ''}
+      ${!Notifs.dispo() ? '<br><b style="color:var(--rouge)">Ce navigateur ne gère pas les notifications.</b> Sur iPhone, installe d\'abord l\'app sur l\'écran d\'accueil.' : ''}
+    </div>
+    ${(P.notif&&P.notif.on)?`
+    <div class="chips">
+      ${[['eau','💧 Hydratation'],['sport','💪 Séance'],['repas','🍽️ Repas']].map(([v,l])=>
+        `<button class="chip" data-notifcat="${v}" aria-pressed="${P.notif[v]!==false}">${l}</button>`).join('')}
+    </div>
+    <button class="cta ghost" data-act="testnotif" style="margin-top:12px">Tester une notification</button>
+    `:''}
+  </div>
 
   <h2 class="sect-title">Repères techniques</h2>
   <div class="card">
@@ -2047,13 +2072,14 @@ function render(toTop){
   document.getElementById('nav').style.display = onboarding?'none':'flex';
   if(toTop) window.scrollTo(0,0);
   else window.scrollTo(0,y);
+  if(typeof Notifs !== 'undefined') Notifs.planifier();
 }
 
 /* ============================================================
    ÉVÉNEMENTS
    ============================================================ */
 document.addEventListener('click', async (ev)=>{
-  const t = ev.target.closest('[data-tab],[data-set],[data-day],[data-reg],[data-acc],[data-infos],[data-act],[data-toggle],[data-del],[data-jeune],[data-jours],[data-coche],[data-seance],[data-valide],[data-achat],[data-vider],[data-delimg]');
+  const t = ev.target.closest('[data-tab],[data-set],[data-day],[data-reg],[data-acc],[data-infos],[data-act],[data-toggle],[data-del],[data-jeune],[data-jours],[data-coche],[data-seance],[data-valide],[data-achat],[data-vider],[data-delimg],[data-notif],[data-notifcat]');
   if(!t) return;
 
   if(t.dataset.tab){ tab=t.dataset.tab; render(true); return; }
@@ -2064,6 +2090,23 @@ document.addEventListener('click', async (ev)=>{
   if(t.dataset.set){ P[t.dataset.set]=t.dataset.val; await save(); render(); return; }
   if(t.dataset.day!==undefined){
     const i=+t.dataset.day; P.dispo[i].on=!P.dispo[i].on; await save(); render(); return;
+  }
+  if(t.dataset.notif){
+    P.notif = P.notif || {on:false, eau:true, sport:true, repas:true};
+    if(!P.notif.on){
+      const ok = await Notifs.activer();
+      if(!ok){ render(); return; }
+      P.notif.on = true; toast('Rappels activés');
+    } else {
+      P.notif.on = false; toast('Rappels désactivés');
+    }
+    await save(); render(); return;
+  }
+  if(t.dataset.notifcat){
+    P.notif = P.notif || {on:false, eau:true, sport:true, repas:true};
+    const v = t.dataset.notifcat;
+    P.notif[v] = P.notif[v] === false ? true : false;
+    await save(); render(); return;
   }
   if(t.dataset.valide){
     const [jour, key] = t.dataset.valide.split('|');
@@ -2147,6 +2190,7 @@ document.addEventListener('click', async (ev)=>{
     journal = journal.filter(e=>e.d!==t.dataset.del); await save(); render(); return;
   }
   const a=t.dataset.act;
+  if(a==='testnotif'){ Notifs.test(); return; }
   if(a==='start'){ onboarding=false; tab='profil'; await save(); render(true); toast('Renseigne tes chiffres, puis va dans « Semaine »'); return; }
   if(a==='install'){
     if(!promptInstall){ toast('Utilise le menu ⋮ de Chrome → « Installer l\'application »'); return; }
@@ -2214,6 +2258,141 @@ document.addEventListener('change', async (ev)=>{
     await save(); render();
   }
 });
+
+/* ============================================================
+   NOTIFICATIONS — rappels humoristiques par événement
+   ------------------------------------------------------------
+   L'app n'a pas de serveur : on ne peut pas « pousser » une
+   notification quand l'onglet est fermé. On planifie donc, avec
+   setTimeout, les rappels des événements encore à venir dans la
+   journée. Ils se déclenchent tant que l'app reste ouverte ou en
+   arrière-plan. À chaque rendu et à chaque retour au premier plan,
+   on replanifie pour coller au profil courant.
+   ============================================================ */
+const Notifs = (function(){
+  // Une phrase est tirée au hasard à chaque déclenchement.
+  const PHRASES = {
+    eau: [
+      "T'as pas soif là ?",
+      "Je peux vous offrir un verre… d'eau ?",
+      "Tu n'oublieras point de t'hydrater…",
+      "T'hydrater tu devras…",
+      "Le sport, c'est de l'eau.",
+      "J'ai un message de tes reins : ON A SOIFFFF !",
+      "Allez, bois, bois, bois, bois…",
+      "Qu'est-ce que tu consommes comme eau ! Continue comme ça 👌",
+      "Bravo, tu commences à avoir de la bouteille 😏",
+      "Je peux vous payer en liquide ?",
+      "Petit verre d'eau, grand pas pour ton ventre.",
+      "Ton corps t'envoie un SMS : 💧💧💧",
+      "H2Oui ou H2Non ?"
+    ],
+    sport: [
+      "C'est l'heure de brûler de la graisse 🔥",
+      "On travaille ta sangle ?",
+      "Prochain vacuum : ton nombril touche ta colonne vertébrale !",
+      "Petite séance ?",
+      "Ta motivation, elle sporte bien ?",
+      "Vite, la séance va bientôt commencer.",
+      "Le canapé peut attendre, tes abdos non 💪",
+      "On transpire un peu ? Juste un peu ? 😅",
+      "Ton transverse t'attend."
+    ],
+    repas: [
+      "C'est l'heure du buffet 🍽️",
+      "L'appétit vient en mangeant.",
+      "On mange un bout ?",
+      "La mangeaille ?",
+      "On mange au resto ce midi ?",
+      "On fait le plein de protéines ?",
+      "À table ! Les protéines n'attendent pas.",
+      "Miam o'clock 🍽️",
+      "Ton corps réclame du carburant."
+    ]
+  };
+  const META = {
+    eau:   {emoji:'💧', tag:'choco-eau'},
+    sport: {emoji:'💪', tag:'choco-sport'},
+    repas: {emoji:'🍽️', tag:'choco-repas'}
+  };
+
+  const dispo = () => ('Notification' in window);
+  const permission = () => dispo() ? Notification.permission : 'denied';
+  const catActive = (n, cat) => n && n[cat] !== false;
+  const phrase = (cat) => { const l = PHRASES[cat]; return l[Math.floor(Math.random()*l.length)]; };
+
+  // Événements du jour courant, sous forme {min, cat}. Reprend la même
+  // logique horaire que la timeline de « Ta semaine ».
+  function evenementsDuJour(){
+    const c = calculs(P);
+    const plan = buildSemaine();
+    const today = (new Date().getDay()+6)%7;
+    const d = plan[today];
+    const seance = d.blocs.length > 0;
+    const H = {matin:420, midi:750, soir:1170};
+    const evs = [];
+    evs.push({min:390, cat:'sport'});                       // marche à jeun
+    if(seance) evs.push({min:H[d.creneau], cat:'sport'});   // séance guidée
+    const J = P.jeune || {};
+    [['pdj',480],['dej',795],['col',990],['din',1230]].forEach(([k,min])=>{ if(!J[k]) evs.push({min, cat:'repas'}); });
+    hydratation(+c.eau, seance ? d.creneau : null).forEach(p=>evs.push({min:p.min, cat:'eau'}));
+    return evs;
+  }
+
+  function montre(cat, texte){
+    const meta = META[cat];
+    const titre = meta.emoji + ' ' + texte;
+    const opts = { body:'Chocolat 🍫', icon:'./icon-192.png', badge:'./icon-192.png', tag:meta.tag, renotify:true, lang:'fr' };
+    const secours = () => { try{ new Notification(titre, opts); }catch(e){} };
+    if(navigator.serviceWorker && navigator.serviceWorker.ready){
+      navigator.serviceWorker.ready.then(reg=>reg.showNotification(titre, opts)).catch(secours);
+    } else secours();
+  }
+
+  let timers = [];
+  function planifier(){
+    timers.forEach(clearTimeout);
+    timers = [];
+    if(!P || onboarding) return;
+    const n = P.notif;
+    if(!n || !n.on) return;
+    if(permission() !== 'granted') return;
+
+    const now = new Date();
+    const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
+    evenementsDuJour().forEach(e=>{
+      if(!catActive(n, e.cat)) return;
+      const delai = (e.min - nowMin) * 60000;
+      if(delai <= 0 || delai > 24*3600000) return;
+      timers.push(setTimeout(()=>montre(e.cat, phrase(e.cat)), delai));
+    });
+    // Peu après minuit, on replanifie pour la nouvelle journée.
+    const versMinuit = (24*60 - nowMin) * 60000 + 60000;
+    timers.push(setTimeout(planifier, Math.max(versMinuit, 60000)));
+  }
+
+  // Demande l'autorisation au navigateur. Renvoie true si accordée.
+  async function activer(){
+    if(!dispo()){ toast('Notifications non disponibles ici'); return false; }
+    let perm = Notification.permission;
+    if(perm === 'default'){ try{ perm = await Notification.requestPermission(); }catch(e){ perm = 'denied'; } }
+    if(perm !== 'granted'){ toast('Notifications refusées par le navigateur'); return false; }
+    return true;
+  }
+
+  function test(){
+    if(permission() !== 'granted'){ toast('Active d\'abord les rappels'); return; }
+    const cats = ['eau','sport','repas'];
+    const cat = cats[Math.floor(Math.random()*cats.length)];
+    montre(cat, phrase(cat));
+  }
+
+  return { planifier, activer, test, dispo, permission };
+})();
+
+// Replanifie quand l'app revient au premier plan (les timers longs
+// peuvent être suspendus en arrière-plan sur certains systèmes).
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) Notifs.planifier(); });
 
 /* ============================================================
    INSTALLATION (PWA)
