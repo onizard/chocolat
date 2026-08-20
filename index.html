@@ -1038,7 +1038,6 @@ function vueProfil(){
       ${[['eau','💧 Hydratation'],['sport','💪 Séance'],['repas','🍽️ Repas']].map(([v,l])=>
         `<button class="chip" data-notifcat="${v}" aria-pressed="${P.notif[v]!==false}">${l}</button>`).join('')}
     </div>
-    <button class="cta ghost" data-act="testnotif" style="margin-top:12px">Tester une notification</button>
     `:''}
   </div>
 
@@ -2308,7 +2307,6 @@ document.addEventListener('click', async (ev)=>{
     journal = journal.filter(e=>e.d!==t.dataset.del); await save(); render(); return;
   }
   const a=t.dataset.act;
-  if(a==='testnotif'){ Notifs.test(); return; }
   if(a==='start'){ onboarding=false; tab='profil'; await save(); render(true); toast('Renseigne tes chiffres, puis va dans « Semaine »'); return; }
   if(a==='install'){
     if(!promptInstall){ toast('Utilise le menu ⋮ de Chrome → « Installer l\'application »'); return; }
@@ -2498,14 +2496,7 @@ const Notifs = (function(){
     return true;
   }
 
-  function test(){
-    if(permission() !== 'granted'){ toast('Active d\'abord les rappels'); return; }
-    const cats = ['eau','sport','repas'];
-    const cat = cats[Math.floor(Math.random()*cats.length)];
-    montre(cat, phrase(cat));
-  }
-
-  return { planifier, activer, test, dispo, permission };
+  return { planifier, activer, dispo, permission };
 })();
 
 // Replanifie quand l'app revient au premier plan (les timers longs
