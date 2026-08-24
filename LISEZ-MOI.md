@@ -19,14 +19,19 @@ La solution la plus simple et gratuite : **GitHub Pages**.
 2. Nom du dépôt : `chocolat`. Visibilité : **Public** (obligatoire pour Pages gratuit).
    Ne coche rien d'autre. → **Create repository**.
 3. Sur la page du dépôt vide : **uploading an existing file**.
-4. Fais glisser **les 7 fichiers** de ce dossier (pas le dossier lui-même) :
+4. Fais glisser **les 8 fichiers** de ce dossier (pas le dossier lui-même) :
    - `index.html`
+   - `mouvements.js`  ← indispensable pour les schémas animés des exercices
    - `manifest.webmanifest`
    - `sw.js`
    - `icon-192.png`
    - `icon-512.png`
    - `icon-maskable-512.png`
    - `apple-touch-icon.png`
+
+   > ⚠️ Si `mouvements.js` manque, l'application fonctionne mais **les petits personnages
+   > qui montrent les mouvements n'apparaissent pas**. C'est la cause n°1 des animations
+   > absentes sur une copie de l'app.
 5. **Commit changes**.
 6. Onglet **Settings** → menu de gauche **Pages** → sous *Branch*, choisis `main`
    et le dossier `/ (root)` → **Save**.
