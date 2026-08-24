@@ -61,6 +61,8 @@ input,select{font-family:inherit;font-size:16px;color:var(--encre)}
 .ruban-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .ruban-head .t{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:17px;letter-spacing:-.01em}
 .ruban-head .s{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.14em;color:#8FA6BB;text-transform:uppercase}
+.ruban-right{display:flex;align-items:baseline;gap:10px}
+.choco{font-family:"Space Mono",monospace;font-size:13px;font-weight:700;color:var(--ambre);white-space:nowrap}
 .tape{display:block;width:100%;height:44px;margin-top:6px}
 .tape .maj{stroke:#F6F1E6;stroke-width:1.6}
 .tape .min{stroke:#54697E;stroke-width:1}
@@ -188,6 +190,10 @@ input[type=number],input[type=date],select{
 .demarrer{width:100%;padding:13px;border-radius:10px;background:var(--jaune-fort);color:#fff;
   font-weight:600;font-size:14.5px;margin:8px 0 4px;letter-spacing:.01em}
 .demarrer::before{content:"▶";font-size:10px;margin-right:8px;vertical-align:1px}
+.valser{width:100%;padding:12px;border-radius:10px;background:#fff;border:1.5px solid var(--jaune-fort);
+  color:var(--jaune-fort);font-weight:600;font-size:14px;margin:2px 0 4px;letter-spacing:.01em}
+.valser.on{background:var(--jaune);border-color:var(--jaune-fort);color:var(--jaune-fort);cursor:default}
+.choco-badge{font-size:13px;margin-left:2px;vertical-align:-1px}
 
 .jeune-chip.valide.on{background:var(--teal);border-color:var(--teal);color:#fff}
 .ic-wrap{position:relative;display:inline-flex}
@@ -378,7 +384,10 @@ nav button[aria-current=page] .lb{font-weight:700}
 <header class="ruban">
   <div class="ruban-head">
     <div class="t" id="rubTitle">Chocolat</div>
-    <div class="s" id="rubSub">programme 12 semaines</div>
+    <div class="ruban-right">
+      <div class="s" id="rubSub">programme 12 semaines</div>
+      <div class="choco" id="choco" title="Tablettes gagnées en validant tes séances" hidden></div>
+    </div>
   </div>
   <svg class="tape" id="tape" viewBox="0 0 360 44" preserveAspectRatio="none" aria-hidden="true"></svg>
 </header>
@@ -433,6 +442,7 @@ const defaultProfil = {
   dispo: JOURS.map((_,i)=>({on: i<5 && i%2===0 ? true : (i===5), creneau: i===5?'matin':'soir', minutes: i===5?55:50})),
   notif:{on:false, eau:true, sport:true, repas:true},
   saison:true,
+  seances:{},
   depart: todayISO()
 };
 
@@ -645,7 +655,7 @@ const MOBILITE = {nom:'Mobilité + vacuum',items:[
   ['Table inversée','3 × 10','Ouvre les hanches et les épaules, à l\'opposé de la position assise. Côtes basses, nuque longue — ne laisse pas la tête tomber en arrière.','tableInversee'],
   ['Étirement psoas (fente genou au sol)','2 × 45 s / côté','Rentre le ventre, avance le bassin, monte le bras du côté du genou arrière. Les cuisses doivent s\'ouvrir à plus de 90°.','psoas'],
   ['Pont fessier','3 × 15','Fessiers, pas lombaires.','pontFessier'],
-  ['Étirement ischio-jambiers','2 × 45 s / côté','']
+  ['Étirement ischio-jambiers','2 × 45 s','Assis au sol, jambes légèrement fléchies : attrape tes pieds et amène le buste sur les cuisses. Puis allonge le dos et tends les jambes progressivement, et tiens la position — sans arrondir le bas du dos.','etirementIschios']
 ]};
 
 // le cardio profite aussi des accessoires disponibles
@@ -733,7 +743,9 @@ const REPAS = {
     {n:'Maquereau, pain de seigle, avocat',kcal:500,p:28,tags:['poisson','gluten'],calme:1,ing:[['Filets de maquereau',110,'g'],['Pain de seigle',60,'g'],['Avocat',60,'g'],['Citron',0.5,'u']]},
     {n:'Yaourt grec, fraises et noix de pécan',kcal:430,p:30,tags:['lactose'],calme:1,ing:[['Yaourt grec',250,'g'],['Fraises',150,'g'],['Noix de pécan',20,'g']]},
     {n:'Yaourt grec, beurre de cacahuète et myrtilles',kcal:470,p:32,tags:['lactose'],calme:1,ing:[['Yaourt grec',250,'g'],['Beurre de cacahuète',20,'g'],['Myrtilles',100,'g']]},
-    {n:'Œufs brouillés, patate douce rôtie, épinards',kcal:460,p:28,tags:['oeuf'],calme:1,ing:[['Œufs',3,'u'],['Patate douce',200,'g'],['Épinards',120,'g'],['Huile d\'olive',8,'g']]}
+    {n:'Œufs brouillés, patate douce rôtie, épinards',kcal:460,p:28,tags:['oeuf'],calme:1,ing:[['Œufs',3,'u'],['Patate douce',200,'g'],['Épinards',120,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Porridge pomme-cannelle et noix',kcal:470,p:20,tags:['gluten','lactose'],calme:1,ing:[['Flocons d\'avoine',60,'g'],['Lait demi-écrémé',250,'ml'],['Pomme',1,'u'],['Noix',15,'g'],['Cannelle',1,'pincée']]},
+    {n:'Skyr, poire et noix',kcal:320,p:24,tags:['lactose'],calme:1,ing:[['Skyr nature',250,'g'],['Poire',1,'u'],['Noix',15,'g']]}
   ],
   dej:[
     {n:'Poulet grillé, riz basmati, brocolis',kcal:640,p:48,tags:['viande'],calme:1,ing:[['Blanc de poulet',180,'g'],['Riz cru',80,'g'],['Brocolis',200,'g'],['Huile d\'olive',10,'g']]},
@@ -749,7 +761,13 @@ const REPAS = {
     {n:'Pois chiches rôtis, quinoa, courgettes',kcal:600,p:24,tags:[],ing:[['Pois chiches cuits',200,'g'],['Quinoa cru',65,'g'],['Courgettes',200,'g'],['Huile d\'olive',10,'g']]},
     {n:'Tempeh grillé, riz, ratatouille',kcal:600,p:38,tags:[],ing:[['Tempeh',180,'g'],['Riz cru',70,'g'],['Ratatouille',250,'g'],['Huile d\'olive',8,'g']]},
     {n:'Dinde, riz complet, brocolis et aubergine',kcal:610,p:46,tags:['viande'],ing:[['Escalope de dinde',180,'g'],['Riz cru',70,'g'],['Brocolis',150,'g'],['Aubergine',120,'g'],['Huile d\'olive',10,'g']]},
-    {n:'Poulet, patate douce, haricots verts',kcal:640,p:48,tags:['viande'],calme:1,ing:[['Blanc de poulet',180,'g'],['Patate douce',260,'g'],['Haricots verts',200,'g'],['Huile d\'olive',10,'g']]}
+    {n:'Poulet, patate douce, haricots verts',kcal:640,p:48,tags:['viande'],calme:1,ing:[['Blanc de poulet',180,'g'],['Patate douce',260,'g'],['Haricots verts',200,'g'],['Huile d\'olive',10,'g']]},
+    {n:'Poulet, potimarron rôti, chou vert',kcal:560,p:48,tags:['viande'],calme:1,ing:[['Blanc de poulet',180,'g'],['Potimarron',250,'g'],['Chou vert',150,'g'],['Huile d\'olive',10,'g']]},
+    {n:'Saumon, lentilles, poireaux fondants',kcal:650,p:44,tags:['poisson'],calme:1,ing:[['Pavé de saumon',150,'g'],['Lentilles vertes crues',70,'g'],['Poireaux',200,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Dinde, purée panais et pomme de terre, épinards',kcal:580,p:46,tags:['viande'],calme:1,ing:[['Escalope de dinde',180,'g'],['Panais',150,'g'],['Pommes de terre',150,'g'],['Épinards',120,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Œufs, chou-fleur rôti, pois chiches, riz',kcal:600,p:30,tags:['oeuf'],ing:[['Œufs',3,'u'],['Chou-fleur',200,'g'],['Pois chiches cuits',120,'g'],['Riz cru',45,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Tofu, potimarron, endives braisées, riz',kcal:590,p:30,tags:[],ing:[['Tofu ferme',200,'g'],['Potimarron',200,'g'],['Endives',150,'g'],['Riz cru',55,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Cabillaud, poireaux, pommes de terre',kcal:470,p:42,tags:['poisson'],calme:1,ing:[['Dos de cabillaud',200,'g'],['Poireaux',200,'g'],['Pommes de terre',200,'g'],['Huile d\'olive',8,'g']]}
   ],
   din:[
     {n:'Colin vapeur, riz blanc, courgettes',kcal:470,p:40,tags:['poisson'],calme:1,ing:[['Filet de colin',200,'g'],['Riz cru',55,'g'],['Courgettes',200,'g'],['Huile d\'olive',8,'g']]},
@@ -767,7 +785,10 @@ const REPAS = {
     {n:'Saumon, quinoa, aubergine rôtie',kcal:560,p:40,tags:['poisson'],ing:[['Pavé de saumon',140,'g'],['Quinoa cru',55,'g'],['Aubergine',180,'g'],['Huile d\'olive',8,'g']]},
     {n:'Œufs, brocolis vapeur, pommes de terre',kcal:470,p:29,tags:['oeuf'],ing:[['Œufs',3,'u'],['Brocolis',180,'g'],['Pommes de terre',200,'g'],['Huile d\'olive',8,'g']]},
     {n:'Truite au four, pommes de terre, haricots verts',kcal:500,p:40,tags:['poisson'],calme:1,ing:[['Filet de truite',170,'g'],['Pommes de terre',200,'g'],['Haricots verts',180,'g'],['Huile d\'olive',8,'g']]},
-    {n:'Colin, quinoa, carottes fondantes',kcal:460,p:39,tags:['poisson'],calme:1,ing:[['Filet de colin',190,'g'],['Quinoa cru',50,'g'],['Carottes',180,'g'],['Huile d\'olive',8,'g']]}
+    {n:'Colin, quinoa, carottes fondantes',kcal:460,p:39,tags:['poisson'],calme:1,ing:[['Filet de colin',190,'g'],['Quinoa cru',50,'g'],['Carottes',180,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Velouté de potimarron, poulet, riz',kcal:460,p:40,tags:['viande'],calme:1,ing:[['Potimarron',300,'g'],['Blanc de poulet',150,'g'],['Riz cru',40,'g'],['Huile d\'olive',6,'g']]},
+    {n:'Colin, purée de chou-fleur, carottes',kcal:440,p:40,tags:['poisson'],calme:1,ing:[['Filet de colin',200,'g'],['Chou-fleur',250,'g'],['Carottes',120,'g'],['Huile d\'olive',8,'g']]},
+    {n:'Dinde, poireaux fondants, patate douce',kcal:480,p:42,tags:['viande'],calme:1,ing:[['Escalope de dinde',180,'g'],['Poireaux',180,'g'],['Patate douce',200,'g'],['Huile d\'olive',8,'g']]}
   ],
   col:[
     {n:'Skyr nature et cannelle',kcal:150,p:20,tags:['lactose'],calme:1,ing:[['Skyr nature',200,'g'],['Cannelle',1,'pincée']]},
@@ -781,7 +802,9 @@ const REPAS = {
     {n:'Yaourt grec et framboises',kcal:180,p:19,tags:['lactose'],calme:1,ing:[['Yaourt grec',200,'g'],['Framboises',100,'g']]},
     {n:'Beurre de cacahuète sur galettes de riz',kcal:215,p:8,tags:[],calme:1,ing:[['Galettes de riz',2,'u'],['Beurre de cacahuète',22,'g']]},
     {n:'Noix de pécan et eau de coco',kcal:210,p:4,tags:[],calme:1,ing:[['Noix de pécan',25,'g'],['Eau de coco',150,'ml']]},
-    {n:'Yaourt grec, myrtilles et amandes',kcal:250,p:20,tags:['lactose'],calme:1,ing:[['Yaourt grec',200,'g'],['Myrtilles',80,'g'],['Amandes',12,'g']]}
+    {n:'Yaourt grec, myrtilles et amandes',kcal:250,p:20,tags:['lactose'],calme:1,ing:[['Yaourt grec',200,'g'],['Myrtilles',80,'g'],['Amandes',12,'g']]},
+    {n:'Yaourt grec et clémentines',kcal:180,p:18,tags:['lactose'],calme:1,ing:[['Yaourt grec',200,'g'],['Clémentines',2,'u']]},
+    {n:'Une pomme et des amandes',kcal:210,p:6,tags:[],calme:1,ing:[['Pomme',1,'u'],['Amandes',20,'g']]}
   ]
 };
 
@@ -831,12 +854,18 @@ const SAISON = {
   'mâche':         [9,10,11,12,1,2,3],
   'pak choï':      [4,5,9,10,11],
   'ratatouille':   [6,7,8,9],                // mélange de légumes d'été
-  'patate douce':  [9,10,11,12,1,2],
+  'patate douce':  [9,10,11,12,1,2,3,4],   // légume de garde, se conserve jusqu'au printemps
   'fraise':        [5,6,7],
   'framboise':     [6,7,8,9],
   'myrtille':      [7,8,9],
   'orange':        [11,12,1,2,3,4],
-  'kiwi':          [11,12,1,2,3,4,5]
+  'kiwi':          [11,12,1,2,3,4,5],
+  'clémentine':    [11,12,1],
+  'potimarron':    [9,10,11,12,1,2,3],       // légumes de garde : se conservent
+  'chou':          [9,10,11,12,1,2,3,4],     // chou vert et chou-fleur
+  'poireau':       [9,10,11,12,1,2,3,4],
+  'panais':        [10,11,12,1,2,3,4],
+  'endive':        [10,11,12,1,2,3,4]
 };
 const MOIS_NOM = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 function estDeSaison(m, mois){
@@ -1220,6 +1249,7 @@ function vueSemaine(){
         ${b.ex.map(e=>`<div class="ex"><div class="nm">${e.nm}${e.tip?`<div class="tip">${e.tip}</div>`:''}${b.type!=='cardio'?`<span class="liens">${e.mw?`<a class="vid mw" href="${e.mw}" target="_blank" rel="noopener noreferrer">MuscleWiki</a>`:''}<a class="vid" href="${lienVideo(e.nm)}" target="_blank" rel="noopener noreferrer">YouTube</a></span>`:''}</div><div class="sr">${e.sr}</div></div>${e.anim?`<div data-anim="${e.anim}"></div>`:''}`).join('')}
       `).join('')}
       <button class="demarrer" data-seance="${i}">Démarrer la séance guidée</button>
+      <button class="valser ${seanceValidee(i)?'on':''}" data-valseance="${i}" aria-pressed="${seanceValidee(i)}">${seanceValidee(i)?'🍫 Séance validée — tablette gagnée':'Valider la séance'}</button>
       </div>
       <div class="note"><b>Règle non négociable :</b> pendant chaque exercice, le ventre doit rentrer en expirant. S'il se bombe vers l'avant en cône, si tu bloques ta respiration ou si le bas du dos se creuse — arrête la série et régresse.</div>`;
 
@@ -1230,7 +1260,7 @@ function vueSemaine(){
         <div style="font-size:12.5px;color:var(--encre3)">Repas sauté — ses calories sont réparties sur les autres.</div>
       </div>` : `
       <div class="repas">
-        <div class="repas-h"><span class="kc">${Math.round(o.m.kcal*o.scale)} kcal · ${Math.round(o.m.p*o.scale)} g P</span>
+        <div class="repas-h"><span class="kc">${Math.round(o.m.kcal*o.scale)} kcal · ${Math.round(o.m.p*o.scale)} g de protéines</span>
           <button class="jeune-chip valide ${estValide(i,o.key)?'on':''}" data-valide="${i}|${o.key}" aria-pressed="${estValide(i,o.key)}">${estValide(i,o.key)?'✓ Pris':'Valider'}</button>
           <button class="jeune-chip" data-jeune="${o.key}" aria-pressed="false">Jeûner</button></div>
         <div class="meal-n">${o.m.n}</div>
@@ -1250,7 +1280,7 @@ function vueSemaine(){
         <div class="sess-day">${d.court}</div>
         <div class="sess-t">
           <div class="n">${titre}</div>
-          <div class="m">${j.tot.toLocaleString('fr-FR')} kcal · ${j.prot} g P${rang===0?' · aujourd\'hui':''}</div>
+          <div class="m">${j.tot.toLocaleString('fr-FR')} kcal · ${j.prot} g protéines${rang===0?' · aujourd\'hui':''}</div>
         </div>
         <div class="caret"></div>
       </button>
@@ -1273,7 +1303,7 @@ function vueSemaine(){
             </div>`;
           if(e.type==='seance') return `
             <div class="etape seance">
-              <div class="etape-h"><span class="h">${e.t}</span><span class="q">Séance</span></div>
+              <div class="etape-h"><span class="h">${e.t}</span><span class="q">Séance${seanceValidee(i)?' <span class="choco-badge" title="Tablette gagnée">🍫</span>':''}</span></div>
               ${blocSeance()}
             </div>`;
           const o = parCle(e.k);
@@ -1326,7 +1356,7 @@ const RAYONS = [
   ['Œufs et produits laitiers', ['œuf','skyr','yaourt','fromage blanc','lait','feta','whey']],
   ['Protéines végétales', ['tofu','tempeh','pois chiches','lentilles']],
   ['Féculents et céréales', ['riz','quinoa','avoine','pain','épeautre','boulgour','semoule','nouilles','polenta','maïs','pomme de terre','pommes de terre','patate douce','tortilla','galettes']],
-  ['Fruits et légumes', ['brocoli','aubergine','courgette','épinard','haricots verts','carotte','tomate','concombre','mâche','pak choï','ratatouille','fenouil','myrtille','fraise','framboise','orange','kiwi','banane','citron','avocat','olives']],
+  ['Fruits et légumes', ['brocoli','aubergine','courgette','épinard','haricots verts','carotte','tomate','concombre','mâche','pak choï','ratatouille','fenouil','myrtille','fraise','framboise','orange','kiwi','banane','citron','avocat','olives','potimarron','chou','poireau','panais','endive','pomme','poire','clémentine']],
   ['Épicerie', []]
 ];
 const HORS_LISTE = ['eau','cannelle','curcuma','sel','poivre','épices'];   // pas achetés au poids
@@ -1358,6 +1388,10 @@ function cleRepas(jour, key){
   return d.toISOString().slice(0,10) + '|' + key;
 }
 function estValide(jour, key){ return !!((P.valides||{})[cleRepas(jour,key)]); }
+
+// Séances validées → tablettes de chocolat gagnées. Clé par date, comme les repas.
+function seanceValidee(jour){ return !!((P.seances||{})[cleRepas(jour,'seance')]); }
+function chocoCount(){ return Object.keys(P && P.seances || {}).length; }
 
 function stock(){ return (P.inventaire = P.inventaire || {}); }
 function cleIng(nm,u){ return nm+'|'+u; }
@@ -1702,7 +1736,10 @@ const PIECES = [
   {mots:['tomate'],                        g:120, u:'tomate',         p:'tomates'},
   {mots:['concombre'],                     g:300, u:'concombre',      p:'concombres'},
   {mots:['fenouil'],                       g:250, u:'fenouil',        p:'fenouils'},
-  {mots:['avocat'],                        g:120, u:'avocat',         p:'avocats'}
+  {mots:['avocat'],                        g:120, u:'avocat',         p:'avocats'},
+  {mots:['poireau'],                       g:150, u:'poireau',        p:'poireaux'},
+  {mots:['endive'],                        g:120, u:'endive',         p:'endives'},
+  {mots:['panais'],                        g:150, u:'panais',         p:'panais'}
 ];
 function pieceDe(nm, unite){
   if(unite !== 'g') return null;
@@ -2261,6 +2298,12 @@ function render(toTop){
     rt.textContent = tab==='semaine'?'Ta semaine':tab==='courses'?'Tes courses':tab==='suivi'?'Ton suivi':'Ton profil';
     rs.textContent = 'Semaine '+s+' / 12';
   }
+  const choco = document.getElementById('choco');
+  if(choco){
+    const nb = (!onboarding && P) ? chocoCount() : 0;
+    choco.hidden = nb === 0;
+    choco.textContent = nb ? '🍫 ' + nb : '';
+  }
   const app = document.getElementById('app');
   app.innerHTML = onboarding ? vueOnboarding()
     : tab==='semaine'? vueSemaine()
@@ -2288,7 +2331,7 @@ function render(toTop){
    ÉVÉNEMENTS
    ============================================================ */
 document.addEventListener('click', async (ev)=>{
-  const t = ev.target.closest('[data-tab],[data-set],[data-day],[data-reg],[data-acc],[data-infos],[data-act],[data-toggle],[data-del],[data-jeune],[data-jours],[data-coche],[data-seance],[data-valide],[data-achat],[data-vider],[data-delimg],[data-notif],[data-notifcat],[data-eq],[data-saison]');
+  const t = ev.target.closest('[data-tab],[data-set],[data-day],[data-reg],[data-acc],[data-infos],[data-act],[data-toggle],[data-del],[data-jeune],[data-jours],[data-coche],[data-seance],[data-valide],[data-achat],[data-vider],[data-delimg],[data-notif],[data-notifcat],[data-eq],[data-saison],[data-valseance]');
   if(!t) return;
 
   if(t.dataset.tab){ tab=t.dataset.tab; render(true); return; }
@@ -2335,6 +2378,13 @@ document.addEventListener('click', async (ev)=>{
       const reste = bientotEpuise().length;
       toast(reste? 'Repas validé — ' + reste + ' aliment(s) à racheter' : 'Repas validé');
     }
+    await save(); render(); return;
+  }
+  if(t.dataset.valseance !== undefined){
+    P.seances = P.seances || {};
+    const ck = cleRepas(+t.dataset.valseance, 'seance');
+    if(P.seances[ck]){ delete P.seances[ck]; toast('Séance dévalidée'); }
+    else { P.seances[ck] = 1; toast('🍫 Bravo ! Une tablette de chocolat gagnée'); }
     await save(); render(); return;
   }
   if(t.dataset.eq){ ouvreEquiv(t.dataset.eq); return; }
