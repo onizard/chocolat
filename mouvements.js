@@ -367,6 +367,26 @@ const MOUV = {
         brasP:[-90,-90], brasL:[-92,-88], jambeP:[166,-101,180], jambeL:[167,-101,178]})}
     ]},
 
+  etirementIschios:{
+    nom:'Étirement des ischio-jambiers', vue:[-60,-92,160,150], sol:12, duree:7200,
+    cles:[
+      {t:0,   label:'Assis au sol, jambes légèrement fléchies', p:P({x:-30, y:0, face:1, ventre:.05,
+        spine:[68,68,68], tete:66,
+        brasP:[-38,-30], brasL:[-40,-28], jambeP:[3,10,70], jambeL:[5,12,68]})},
+      {t:.4,  label:'Attrape tes pieds, le buste vient sur les cuisses', p:P({x:-30, y:0, face:1, ventre:.06,
+        spine:[34,29,25], tete:20,
+        brasP:[-16,-12], brasL:[-18,-10], jambeP:[2,6,62], jambeL:[4,8,60]})},
+      {t:.72, label:'Allonge le dos et tends les jambes progressivement', p:P({x:-30, y:0, face:1, ventre:.02,
+        spine:[20,15,11], tete:9,
+        brasP:[-7,-5], brasL:[-9,-3], jambeP:[1,1,55], jambeL:[2,2,53]})},
+      {t:.9,  label:'Tiens 45 secondes, sans arrondir le bas du dos', p:P({x:-30, y:0, face:1, ventre:.02,
+        spine:[20,15,11], tete:9,
+        brasP:[-7,-5], brasL:[-9,-3], jambeP:[1,1,55], jambeL:[2,2,53]})},
+      {t:1,   label:'Assis au sol, jambes légèrement fléchies', p:P({x:-30, y:0, face:1, ventre:.05,
+        spine:[68,68,68], tete:66,
+        brasP:[-38,-30], brasL:[-40,-28], jambeP:[3,10,70], jambeL:[5,12,68]})}
+    ]},
+
   /* ---------- erreurs ---------- */
 
   errCrunch:{
