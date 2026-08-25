@@ -523,7 +523,8 @@ const ACCESSOIRES = [
   ['swissball',  'Swiss ball'],
   ['roue',       'Roue abdominale'],
   ['corde',      'Corde à sauter'],
-  ['trampoline', 'Trampoline']
+  ['trampoline', 'Trampoline'],
+  ['tapis',      'Tapis de course']
 ];
 const aDispo = id => (P.accessoires||[]).indexOf(id) >= 0;
 
@@ -660,6 +661,8 @@ const MOBILITE = {nom:'Mobilité + vacuum',items:[
 
 // le cardio profite aussi des accessoires disponibles
 function cardioEx(min){
+  if(P.equip==='accessoires' && aDispo('tapis'))
+    return {nm:'Marche rapide inclinée sur tapis', sr:min+' min', tip:'Inclinaison 3 à 6 %, allure rapide mais où tu peux encore parler. Idéal pour la zone 2 : beaucoup de dépense, très peu d\'impact.'};
   if(P.equip==='accessoires' && aDispo('trampoline'))
     return {nm:'Rebonds sur trampoline', sr:min+' min', tip:'Impact très faible pour les articulations, et l\'allure reste conversationnelle. Alterne rebonds simples et montées de genoux.'};
   if(P.equip==='accessoires' && aDispo('corde'))
@@ -1295,11 +1298,19 @@ function vueSemaine(){
         ${j.manque>120 && j.tot>0?`<div class="note" style="background:var(--ambre-pale)"><b>Il manque ${Math.round(j.manque)} kcal.</b> Les repas restants ne peuvent pas absorber tout le report sans devenir irréalistes.</div>`:''}
         ${j.tot>0 && j.tot<c.plancher?`<div class="note" style="background:var(--rouge-pale)">Le total descend sous le plancher de ${c.plancher.toLocaleString('fr-FR')} kcal calculé pour toi. Un déficit plus creux fait perdre du muscle, pas plus de graisse.</div>`:''}
         ${seq.map(e=>{
-          if(e.type==='marche') return `
+          if(e.type==='marche'){
+            const suite = d.creneau==='matin'&&d.blocs.length?' Enchaîne ensuite sur la séance.':'';
+            const surTapis = P.equip==='accessoires' && aDispo('tapis');
+            const nmMarche = surTapis ? 'Sur le tapis de course, à jeun' : 'Avant le petit-déjeuner';
+            const tipMarche = surTapis
+              ? `Inclinaison 3 à 6 %, allure rapide mais conversationnelle. Le tapis rend la marche du matin facile à tenir, même quand il pleut.${suite}`
+              : `Allure conversationnelle. Un café noir 30 minutes avant si tu veux.${suite}`;
+            return `
             <div class="etape marche">
               <div class="etape-h"><span class="h">${e.t}</span><span class="q">Marche rapide à jeun</span></div>
-              <div class="bloc-phys"><div class="ex"><div class="nm">Avant le petit-déjeuner<div class="tip">Allure conversationnelle. Un café noir 30 minutes avant si tu veux.${d.creneau==='matin'&&d.blocs.length?' Enchaîne ensuite sur la séance.':''}</div></div><div class="sr">20–30 min</div></div></div>
+              <div class="bloc-phys"><div class="ex"><div class="nm">${nmMarche}<div class="tip">${tipMarche}</div></div><div class="sr">20–30 min</div></div></div>
             </div>`;
+          }
           if(e.type==='eau') return `
             <div class="etape eau">
               <div class="etape-h"><span class="h">${e.t}</span><span class="q">${e.q}</span>
