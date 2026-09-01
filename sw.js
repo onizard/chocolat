@@ -2,7 +2,7 @@
    Rôle : rendre l'application utilisable sans connexion et satisfaire
    les critères d'installation de Chrome sur Android. */
 
-const CACHE = 'chocolat-v31';
+const CACHE = 'chocolat-v32';
 const COQUILLE = [
   './',
   './index.html',
