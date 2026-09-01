@@ -906,9 +906,9 @@ const GROUPES = [
 ];
 function nutri(nm){ return NUTRI[nm] || null; }
 // apport pour une quantité exprimée dans l'unité de l'aliment (g, ml ou u)
-function apport(nm, qte){
+function apport(nm, qMesure){
   const n = nutri(nm); if(!n) return null;
-  const facteur = n[2]==='u' ? qte : qte/100;
+  const facteur = n[2]==='u' ? qMesure : qMesure/100;
   return { kcal:n[0]*facteur, p:n[1]*facteur, u:n[2] };
 }
 function substitutsDe(nm){
@@ -1364,7 +1364,7 @@ function vueSemaine(){
       const dR = deltaRepas(i, o);
       const kc = Math.round(o.m.kcal*o.scale + dR.kcal);
       const pr = Math.round(o.m.p*o.scale + dR.p);
-      const ajuste = Math.round(dR.kcal) !== 0;
+      const ajuste = Math.round(dR.kcal) !== 0 || Math.round(dR.p) !== 0;
       return `
       <div class="repas">
         <div class="repas-h"><span class="kc">${kc} kcal · ${pr} g de protéines${ajuste?' <span class="kc-adj">· ajusté</span>':''}</span>
@@ -1393,7 +1393,7 @@ function vueSemaine(){
         <div class="sess-day">${d.court}</div>
         <div class="sess-t">
           <div class="n">${titre}</div>
-          <div class="m">${(() => { const dJ=deltaJour(i,j); const kt=j.tot+Math.round(dJ.kcal); const pt=j.prot+Math.round(dJ.p); return kt.toLocaleString('fr-FR')+' kcal · '+pt+' g protéines'+(Math.round(dJ.kcal)?' · ajusté':''); })()}${rang===0?' · aujourd\'hui':''}</div>
+          <div class="m">${(() => { const dJ=deltaJour(i,j); const kt=j.tot+Math.round(dJ.kcal); const pt=j.prot+Math.round(dJ.p); return kt.toLocaleString('fr-FR')+' kcal · '+pt+' g protéines'+((Math.round(dJ.kcal)||Math.round(dJ.p))?' · ajusté':''); })()}${rang===0?' · aujourd\'hui':''}</div>
         </div>
         <div class="caret"></div>
       </button>
@@ -1816,7 +1816,7 @@ function ouvreAchat(k, besoin){
    Appui long sur un aliment : on choisit un autre aliment et/ou une
    autre quantité réellement consommée, et les calories du repas et du
    jour se recalculent. */
-function fmtQ(q, u){ return u==='u' ? (q + (q>1?' u':' u')) : (Math.round(q) + ' ' + u); }
+function fmtQ(q, u){ return u==='u' ? (q + ' u') : (Math.round(q) + ' ' + u); }
 function ouvreSubstituts(payload){
   if(document.querySelector('.sheet-ov')) return;
   const [jourS, key, enc] = payload.split('|');
