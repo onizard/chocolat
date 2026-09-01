@@ -270,7 +270,10 @@ input[type=number],input[type=date],select{
 .meal-h .kc{font-family:"Space Mono",monospace;font-size:12px;color:var(--encre2)}
 .meal-n{font-weight:600;font-size:15.5px;line-height:1.3;margin-bottom:8px}
 .ing{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13.5px;padding:3px 0;color:var(--encre2)}
-.ing[data-alim]{cursor:pointer}
+.ing[data-alim]{cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.ing .sub-tag{font-size:11px;color:var(--jaune-fort);font-style:italic;margin-left:4px;white-space:nowrap}
+.ing.swap .anm{color:var(--encre)}
+.kc-adj{color:var(--jaune-fort);font-weight:600}
 .ing .g-left{display:flex;align-items:center;gap:9px;min-width:0}
 .ing .abox{width:18px;height:18px;border:1.6px solid var(--trait);border-radius:5px;flex:none;position:relative;background:#fff}
 .ing.pris .abox{background:var(--vert-fort);border-color:var(--vert-fort)}
@@ -450,6 +453,7 @@ const defaultProfil = {
   saison:true,
   seances:{},
   alimentsPris:{},
+  subs:{},
   depart: todayISO()
 };
 
@@ -849,6 +853,89 @@ function ingredients(m){
     const sub = SUBST_DIGESTION[nm];
     return sub ? [sub[0], q*sub[1], u] : [nm,q,u];
   });
+}
+
+/* ---------- valeurs nutritionnelles indicatives ----------
+   [kcal, protéines(g)] pour 100 g / 100 ml, ou par unité pour les 'u'.
+   Sert à recalculer les calories du jour quand on remplace un aliment
+   ou sa quantité par ce qu'on a vraiment mangé. Approximatif, comme le
+   reste : de quoi suivre, pas une base de données de laboratoire. */
+const NUTRI = {
+  'Blanc de poulet':[110,23,'g'], 'Blanc de dinde':[110,24,'g'], 'Escalope de dinde':[110,24,'g'],
+  'Bœuf haché 5 %':[137,21,'g'], 'Pavé de saumon':[200,20,'g'], 'Dos de cabillaud':[82,18,'g'],
+  'Filet de colin':[80,18,'g'], 'Filet de truite':[140,20,'g'], 'Filets de maquereau':[205,19,'g'],
+  'Thon au naturel':[110,26,'g'], 'Crevettes décortiquées':[90,20,'g'], 'Tofu ferme':[120,13,'g'],
+  'Tempeh':[190,19,'g'], 'Œufs':[78,6.3,'u'], 'Whey':[380,80,'g'], 'Protéine de pois':[360,80,'g'],
+  'Skyr nature':[63,11,'g'], 'Fromage blanc 0 %':[47,8,'g'], 'Yaourt grec':[95,9,'g'],
+  'Lait demi-écrémé':[46,3.3,'ml'], 'Lait sans lactose':[46,3.3,'ml'], 'Boisson de soja':[40,3.3,'ml'],
+  'Feta':[264,14,'g'], 'Parmesan':[400,36,'g'], 'Comté':[410,27,'g'],
+  'Riz cru':[350,7,'g'], 'Quinoa cru':[360,14,'g'], 'Boulgour cru':[340,12,'g'],
+  'Semoule complète crue':[350,12,'g'], 'Polenta crue':[360,8,'g'], 'Nouilles de riz crues':[360,6,'g'],
+  "Flocons d'avoine":[375,13,'g'], 'Pain complet':[250,9,'g'], 'Pain de seigle':[250,8,'g'],
+  "Pain au levain d'épeautre":[250,9,'g'], 'Lentilles corail crues':[350,24,'g'],
+  'Lentilles vertes crues':[335,24,'g'], 'Pois chiches cuits':[160,9,'g'],
+  'Patate douce':[86,1.6,'g'], 'Pommes de terre':[80,2,'g'],
+  'Galettes de riz':[35,0.7,'u'], 'Tortilla complète':[130,4,'u'], 'Tortilla de maïs':[110,3,'u'],
+  'Brocolis':[34,2.8,'g'], 'Courgettes':[17,1.2,'g'], 'Aubergine':[25,1,'g'], 'Concombre':[15,0.6,'g'],
+  'Épinards':[23,2.9,'g'], 'Haricots verts':[31,1.8,'g'], 'Carottes':[41,0.9,'g'], 'Tomates':[18,0.9,'g'],
+  'Mâche':[21,2,'g'], 'Pak choï':[13,1.5,'g'], 'Ratatouille':[60,1.5,'g'],
+  'Ratatouille sans oignon ni ail':[60,1.5,'g'], 'Fenouil':[31,1.2,'g'], 'Potimarron':[32,1.2,'g'],
+  'Poireaux':[27,1.5,'g'], 'Chou vert':[25,2,'g'], 'Chou-fleur':[25,1.9,'g'], 'Panais':[75,1.2,'g'],
+  'Endives':[17,1,'g'], 'Avocat':[160,2,'g'], 'Olives':[115,1,'g'],
+  'Myrtilles':[57,0.7,'g'], 'Fraises':[32,0.7,'g'], 'Framboises':[52,1.2,'g'],
+  'Banane':[105,1.3,'u'], 'Kiwi':[45,0.9,'u'], 'Orange':[62,1.2,'u'], 'Citron':[17,0.6,'u'],
+  'Pomme':[78,0.4,'u'], 'Poire':[90,0.6,'u'], 'Clémentines':[23,0.5,'u'],
+  'Amandes':[600,21,'g'], 'Noix':[650,15,'g'], 'Noix de pécan':[690,9,'g'],
+  'Beurre de cacahuète':[600,25,'g'], 'Graines de chia':[490,17,'g'], 'Graines de sésame':[570,17,'g'],
+  'Chocolat noir 85 %':[600,10,'g'], "Huile d'olive":[884,0,'g'],
+  'Eau':[0,0,'ml'], 'Eau de coco':[20,0.7,'ml'], 'Cannelle':[0,0,'pincée']
+};
+// Groupes de substituts (échanges réalistes, même unité et densité proche).
+const GROUPES = [
+  ['Riz cru','Quinoa cru','Boulgour cru','Semoule complète crue','Polenta crue','Nouilles de riz crues'],
+  ['Pommes de terre','Patate douce'],
+  ['Pain complet','Pain de seigle',"Pain au levain d'épeautre"],
+  ['Lentilles corail crues','Lentilles vertes crues'],
+  ['Blanc de poulet','Blanc de dinde','Escalope de dinde','Bœuf haché 5 %','Pavé de saumon','Dos de cabillaud','Filet de colin','Filet de truite','Filets de maquereau','Thon au naturel','Crevettes décortiquées','Tofu ferme','Tempeh'],
+  ['Brocolis','Courgettes','Aubergine','Concombre','Épinards','Haricots verts','Carottes','Tomates','Mâche','Pak choï','Ratatouille','Fenouil','Potimarron','Poireaux','Chou vert','Chou-fleur','Panais','Endives'],
+  ['Myrtilles','Fraises','Framboises'],
+  ['Banane','Kiwi','Orange','Pomme','Poire','Clémentines'],
+  ['Skyr nature','Fromage blanc 0 %','Yaourt grec'],
+  ['Amandes','Noix','Noix de pécan'],
+  ['Feta','Parmesan','Comté']
+];
+function nutri(nm){ return NUTRI[nm] || null; }
+// apport pour une quantité exprimée dans l'unité de l'aliment (g, ml ou u)
+function apport(nm, qMesure){
+  const n = nutri(nm); if(!n) return null;
+  const facteur = n[2]==='u' ? qMesure : qMesure/100;
+  return { kcal:n[0]*facteur, p:n[1]*facteur, u:n[2] };
+}
+function substitutsDe(nm){
+  const g = GROUPES.find(a=>a.indexOf(nm) >= 0);
+  return g ? g.filter(x=>x!==nm) : [];
+}
+// affichage d'une quantité déjà mise à l'échelle (comme qte(), mais quantité directe)
+function affQte(qEff, u){
+  if(u==='u') return (Math.round(qEff*2)/2).toString().replace('.5',' ½').replace(/^0 ½$/,'½') + ' ';
+  if(u==='pincée') return '1 ';
+  if(qEff>=40) return Math.round(qEff/5)*5 + ' ';
+  return Math.round(qEff) + ' ';
+}
+// écart kcal/protéines d'un repas dû aux aliments réellement mangés (substitutions)
+function deltaRepas(jour, o){
+  const subs = P.subs || {}; let dk=0, dp=0;
+  ingredients(o.m).forEach(([nm,q])=>{
+    const s = subs[cleAliment(jour, o.key, nm)]; if(!s) return;
+    const av = apport(nm, q*o.scale), ap = apport(s.nm, s.q);
+    if(av && ap){ dk += ap.kcal - av.kcal; dp += ap.p - av.p; }
+  });
+  return { kcal:dk, p:dp };
+}
+function deltaJour(jour, j){
+  let k=0, p=0;
+  j.out.forEach(o=>{ if(o.jeune) return; const d=deltaRepas(jour,o); k+=d.kcal; p+=d.p; });
+  return { kcal:k, p:p };
 }
 
 /* ---------- saisonnalité ----------
@@ -1267,27 +1354,38 @@ function vueSemaine(){
       </div>
       <div class="note"><b>Règle non négociable :</b> pendant chaque exercice, le ventre doit rentrer en expirant. S'il se bombe vers l'avant en cône, si tu bloques ta respiration ou si le bas du dos se creuse — arrête la série et régresse.</div>`;
 
-    const blocRepas = (o) => o.jeune ? `
+    const blocRepas = (o) => {
+      if(o.jeune) return `
       <div class="repas off">
         <div class="repas-h"><span class="lbl">Jeûne</span>
           <button class="jeune-chip on" data-jeune="${o.key}" aria-pressed="true">Jeûné</button></div>
         <div style="font-size:12.5px;color:var(--encre3)">Repas sauté — ses calories sont réparties sur les autres.</div>
-      </div>` : `
+      </div>`;
+      const dR = deltaRepas(i, o);
+      const kc = Math.round(o.m.kcal*o.scale + dR.kcal);
+      const pr = Math.round(o.m.p*o.scale + dR.p);
+      const ajuste = Math.round(dR.kcal) !== 0 || Math.round(dR.p) !== 0;
+      return `
       <div class="repas">
-        <div class="repas-h"><span class="kc">${Math.round(o.m.kcal*o.scale)} kcal · ${Math.round(o.m.p*o.scale)} g de protéines</span>
+        <div class="repas-h"><span class="kc">${kc} kcal · ${pr} g de protéines${ajuste?' <span class="kc-adj">· ajusté</span>':''}</span>
           <button class="jeune-chip valide ${estValide(i,o.key)?'on':''}" data-valide="${i}|${o.key}" aria-pressed="${estValide(i,o.key)}">${estValide(i,o.key)?'✓ Pris':'Valider'}</button>
           <button class="jeune-chip" data-jeune="${o.key}" aria-pressed="false">Jeûner</button></div>
         <div class="meal-n">${o.m.n}</div>
         ${ingredients(o.m).map(([nm,q,u])=>{
-          const eq = (u==='g'||u==='ml');
-          const v = q*o.scale;
-          const affiche = v>=40 ? Math.round(v/5)*5 : Math.round(v);   // même arrondi que qte(), pour que carte et fiche coïncident
-          const data = eq ? ` data-eq="${affiche}|${u}|${encodeURIComponent(nm)}" title="Voir l'équivalent en cuillères, poignées ou verres"` : '';
+          const s = (P.subs||{})[cleAliment(i,o.key,nm)];
+          const affNm = s ? s.nm : nm;
+          const affU  = s && nutri(s.nm) ? nutri(s.nm)[2] : u;
+          const affQ  = s ? s.q : q*o.scale;
+          const eq = (affU==='g'||affU==='ml');
+          const affiche = affQ>=40 ? Math.round(affQ/5)*5 : Math.round(affQ);
+          const data = eq ? ` data-eq="${affiche}|${affU}|${encodeURIComponent(affNm)}" title="Voir l'équivalent en cuillères, poignées ou verres"` : '';
           const pris = alimentPris(i, o.key, nm);
-          return `<div class="ing${pris?' pris':''}" data-alim="${i}|${o.key}|${encodeURIComponent(nm)}" aria-pressed="${pris}" title="Cocher si tu l'as vraiment mangé"><span class="g-left"><span class="abox"></span><span class="anm">${nm}</span></span><span class="q${eq?' q-eq':''}"${data}>${qte(q,o.scale,u)}${u==='u'||u==='pincée'?'':u}</span></div>`;
+          const suffixe = (affU==='u'||affU==='pincée') ? '' : affU;
+          return `<div class="ing${pris?' pris':''}${s?' swap':''}" data-alim="${i}|${o.key}|${encodeURIComponent(nm)}" aria-pressed="${pris}" title="Toucher : coché comme mangé · appui long : dire ce que j'ai vraiment mangé"><span class="g-left"><span class="abox"></span><span class="anm">${affNm}${s?` <span class="sub-tag">au lieu de ${nm}</span>`:''}</span></span><span class="q${eq?' q-eq':''}"${data}>${affQte(affQ,affU)}${suffixe}</span></div>`;
         }).join('')}
         ${o.scale>1.55?`<div class="note">Portion nettement augmentée pour absorber le report. Si elle passe mal, scinde-la en deux prises rapprochées.</div>`:''}
       </div>`;
+    };
 
     return `
     <div class="sess ${rang===0?'today':''} ${d.blocs.length?'':'rest'}">
@@ -1295,13 +1393,13 @@ function vueSemaine(){
         <div class="sess-day">${d.court}</div>
         <div class="sess-t">
           <div class="n">${titre}</div>
-          <div class="m">${j.tot.toLocaleString('fr-FR')} kcal · ${j.prot} g protéines${rang===0?' · aujourd\'hui':''}</div>
+          <div class="m">${(() => { const dJ=deltaJour(i,j); const kt=j.tot+Math.round(dJ.kcal); const pt=j.prot+Math.round(dJ.p); return kt.toLocaleString('fr-FR')+' kcal · '+pt+' g protéines'+((Math.round(dJ.kcal)||Math.round(dJ.p))?' · ajusté':''); })()}${rang===0?' · aujourd\'hui':''}</div>
         </div>
         <div class="caret"></div>
       </button>
       ${open?`<div class="sess-body">
         <div class="eau-total">${ico('goutte','var(--bleu-eau)')} <b>${c.eau} L</b> · ${hydratation(+c.eau, null).reduce((s,p)=>s+p.n,0)} verres de ${VERRE} ml, répartis ci-dessous</div>
-        <div class="eq-astuce">Astuce : touche le poids d'un aliment pour l'estimer sans balance — en cuillères, poignées ou verres.</div>
+        <div class="eq-astuce">Astuce : touche le poids d'un aliment pour l'estimer sans balance ; coche-le quand tu l'as mangé ; <b>appui long</b> pour dire ce que tu as vraiment mangé (autre aliment ou quantité) et recalculer les calories.</div>
         ${j.nbJeune?`<div class="note" style="margin-top:0">${j.nbJeune} repas jeûné${j.nbJeune>1?'s':''} : calories reportées sur les autres, pour tous les jours.</div>`:''}
         ${j.manque>120 && j.tot>0?`<div class="note" style="background:var(--ambre-pale)"><b>Il manque ${Math.round(j.manque)} kcal.</b> Les repas restants ne peuvent pas absorber tout le report sans devenir irréalistes.</div>`:''}
         ${j.tot>0 && j.tot<c.plancher?`<div class="note" style="background:var(--rouge-pale)">Le total descend sous le plancher de ${c.plancher.toLocaleString('fr-FR')} kcal calculé pour toi. Un déficit plus creux fait perdre du muscle, pas plus de graisse.</div>`:''}
@@ -1709,6 +1807,70 @@ function ouvreAchat(k, besoin){
     } else if(act === 'del'){
       delete stock()[k]; toast('Retiré de l\'inventaire');
     }
+    el.remove();
+    if(act !== 'no'){ await save(); render(); }
+  });
+}
+
+/* ---------- « qu'ai-je vraiment mangé ? » ----------
+   Appui long sur un aliment : on choisit un autre aliment et/ou une
+   autre quantité réellement consommée, et les calories du repas et du
+   jour se recalculent. */
+function fmtQ(q, u){ return u==='u' ? (q + ' u') : (Math.round(q) + ' ' + u); }
+function ouvreSubstituts(payload){
+  if(document.querySelector('.sheet-ov')) return;
+  const [jourS, key, enc] = payload.split('|');
+  const jour = +jourS, plannedNm = decodeURIComponent(enc);
+  const jo = menuDuJour(jour).out.find(x=>x.key===key);
+  if(!jo) return;
+  const ing = ingredients(jo.m).find(x=>x[0]===plannedNm);
+  if(!ing || !nutri(plannedNm)){ toast('Recalcul indisponible pour cet aliment'); return; }
+  const unite = nutri(plannedNm)[2];
+  if(unite === 'pincée'){ toast('Rien à recalculer pour un assaisonnement'); return; }
+  const base  = plannedNm==='Cannelle' ? 1 : ing[1]*jo.scale;   // quantité prévue effective
+  const ck  = cleAliment(jour, key, plannedNm);
+  const cur = (P.subs||{})[ck];
+  let selNm = cur ? cur.nm : plannedNm;
+  let selQ  = cur ? cur.q  : base;
+  const choix = [plannedNm, ...substitutsDe(plannedNm)];
+  const quantites = unite==='u'
+    ? [1,2,3,4].map(n=>({q:n, l:n+' u'}))
+    : [0.5,1,1.5,2].map(m=>{ const g=Math.max(5, Math.round(base*m/5)*5); return {q:g, l:g+' '+unite}; });
+
+  const el = document.createElement('div'); el.className = 'sheet-ov';
+  const t0 = Date.now();
+  const prevu = apport(plannedNm, base);
+  function dessine(){
+    const a = apport(selNm, selQ);
+    const d = a && prevu ? Math.round(a.kcal - prevu.kcal) : 0;
+    el.innerHTML = `
+      <div class="sheet">
+        <div class="eyebrow">Qu'as-tu vraiment mangé ?</div>
+        <div class="sheet-nm">${plannedNm}</div>
+        <div class="eq-exact">Prévu : ${fmtQ(base,unite)} · ${Math.round(prevu.kcal)} kcal</div>
+        ${choix.length>1?`<span class="eyebrow" style="display:block;margin:2px 0 6px">Aliment</span>
+        <div class="chips">${choix.map(n=>`<button class="chip" data-sn="${encodeURIComponent(n)}" aria-pressed="${n===selNm}">${n}${n===plannedNm?' · prévu':''}</button>`).join('')}</div>`:''}
+        <span class="eyebrow" style="display:block;margin:12px 0 6px">Quantité</span>
+        <div class="chips">${quantites.map(x=>`<button class="chip" data-sq="${x.q}" aria-pressed="${x.q===selQ}">${x.l}</button>`).join('')}</div>
+        <div class="eq-row" style="margin:14px 0 10px">Mangé : ≈ ${Math.round(a.kcal)} kcal · ${Math.round(a.p)} g protéines <span style="color:var(--encre3)">(${d>0?'+':''}${d} kcal / jour)</span></div>
+        <button class="cta" data-sh="ok">Valider ce que j'ai mangé</button>
+        ${cur?`<button class="cta danger" data-sh="reset">Revenir au repas prévu</button>`:''}
+        <button class="cta ghost" data-sh="no">Annuler</button>
+      </div>`;
+  }
+  dessine(); document.body.appendChild(el);
+  el.addEventListener('click', async (ev)=>{
+    const sn = ev.target.closest('[data-sn]'), sq = ev.target.closest('[data-sq]'), b = ev.target.closest('[data-sh]');
+    if(sn){ selNm = decodeURIComponent(sn.dataset.sn); dessine(); return; }
+    if(sq){ selQ = +sq.dataset.sq; dessine(); return; }
+    if(!b){ if(ev.target === el && Date.now()-t0 > 400) el.remove(); return; }
+    const act = b.dataset.sh;
+    if(act === 'ok'){
+      P.subs = P.subs || {};
+      if(selNm === plannedNm && selQ === base) delete P.subs[ck];
+      else P.subs[ck] = {nm:selNm, q:selQ};
+      toast('Journée recalculée');
+    } else if(act === 'reset'){ P.subs = P.subs || {}; delete P.subs[ck]; toast('Repas prévu rétabli'); }
     el.remove();
     if(act !== 'no'){ await save(); render(); }
   });
@@ -2357,6 +2519,23 @@ function render(toTop){
 /* ============================================================
    ÉVÉNEMENTS
    ============================================================ */
+// Appui long sur un aliment → « qu'ai-je vraiment mangé ? »
+let lpTimer=null, lpFired=false, lpX=0, lpY=0;
+function lpClear(){ if(lpTimer){ clearTimeout(lpTimer); lpTimer=null; } }
+document.addEventListener('pointerdown', (e)=>{
+  const el = e.target.closest('[data-alim]');
+  if(!el || e.target.closest('[data-eq]')) return;   // le poids garde son propre appui (équivalences)
+  lpX=e.clientX; lpY=e.clientY; lpFired=false;
+  lpClear();
+  lpTimer = setTimeout(()=>{ lpFired=true; lpTimer=null; ouvreSubstituts(el.dataset.alim); }, 480);
+});
+document.addEventListener('pointermove', (e)=>{
+  if(lpTimer && (Math.abs(e.clientX-lpX)>10 || Math.abs(e.clientY-lpY)>10)) lpClear();
+});
+document.addEventListener('pointerup', lpClear);
+document.addEventListener('pointercancel', lpClear);
+document.addEventListener('contextmenu', (e)=>{ if(e.target.closest('[data-alim]')) e.preventDefault(); });
+
 document.addEventListener('click', async (ev)=>{
   const t = ev.target.closest('[data-tab],[data-set],[data-day],[data-reg],[data-acc],[data-infos],[data-act],[data-toggle],[data-del],[data-jeune],[data-jours],[data-coche],[data-seance],[data-valide],[data-achat],[data-vider],[data-delimg],[data-notif],[data-notifcat],[data-eq],[data-saison],[data-valseance],[data-alim]');
   if(!t) return;
@@ -2416,6 +2595,7 @@ document.addEventListener('click', async (ev)=>{
   }
   if(t.dataset.eq){ ouvreEquiv(t.dataset.eq); return; }
   if(t.dataset.alim){
+    if(lpFired){ lpFired=false; return; }   // un appui long vient d'ouvrir la fenêtre : pas de cochage
     const [jour, key, enc] = t.dataset.alim.split('|');
     const nm = decodeURIComponent(enc);
     P.alimentsPris = P.alimentsPris || {};
