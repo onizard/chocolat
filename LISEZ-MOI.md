@@ -87,7 +87,7 @@ HTTPS est générée immédiatement, sans compte.
 
 ---
 
-## Flashcards d'anglais de Nora (dossier `anglais/`)
+## Flashcards d'anglais de Norah (dossier `anglais/`)
 
 Une deuxième petite application vit dans le dossier `anglais/` : des flashcards
 français ↔ anglais construites à partir du cahier d'anglais de 6e (classe, météo,

@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#F2B415">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
-<title>Nora's Spelling Bee</title>
+<title>Norah's Spelling Bee</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -211,7 +211,7 @@ footer{font-size:.8rem;color:var(--ink-soft);text-align:center}
         <circle cx="47" cy="34" r="2.3" fill="var(--ink)"/>
       </svg>
       <div>
-        <h1>Nora's Spelling Bee</h1>
+        <h1>Norah's Spelling Bee</h1>
         <p>Anglais 6e · vocabulaire du cahier</p>
       </div>
     </div>
@@ -905,7 +905,7 @@ function results() {
   const ids = Object.keys(s.first), good = ids.filter(id => s.first[id]).length;
   const wrong = ids.filter(id => !s.first[id]);
   const pct = ids.length ? good / ids.length : 0;
-  const msg = pct === 1 ? 'Un sans-faute, bravo Nora !' : pct >= .8 ? 'Très bien, encore un petit effort.' : pct >= .5 ? 'C\'est en bonne voie. On revoit les erreurs ?' : 'On s\'accroche : revois les erreurs, ça va venir.';
+  const msg = pct === 1 ? 'Un sans-faute, bravo Norah !' : pct >= .8 ? 'Très bien, encore un petit effort.' : pct >= .5 ? 'C\'est en bonne voie. On revoit les erreurs ?' : 'On s\'accroche : revois les erreurs, ça va venir.';
   view.innerHTML = `<div class="wrap" style="padding:0">
     <section class="panel">
       <span class="label">Résultat du premier coup</span>
