@@ -84,3 +84,19 @@ tous deux gratuits dans le DSM). C'est faisable mais nettement plus long que Git
 
 Autre option en deux minutes : **app.netlify.com/drop** — on y dépose le dossier, l'adresse
 HTTPS est générée immédiatement, sans compte.
+
+---
+
+## Flashcards d'anglais de Nora (dossier `anglais/`)
+
+Une deuxième petite application vit dans le dossier `anglais/` : des flashcards
+français ↔ anglais construites à partir du cahier d'anglais de 6e (classe, météo,
+émotions, jours, mois, nombres, couleurs, fournitures, mots transparents…).
+
+- Adresse une fois GitHub Pages activé : `https://<ton-compte>.github.io/chocolat/anglais/`
+- Trois façons de réviser : **Cartes** (retourner la carte), **Écrire** (taper la
+  traduction, l'orthographe est vérifiée lettre par lettre) et **Dictée** (le mot est
+  lu à voix haute, il faut l'écrire).
+- Pour ajouter des mots : dans `anglais/index.html`, chaque leçon contient des lignes
+  `français | anglais | variantes acceptées | remarque`. Ajoute simplement une ligne.
+- Les progrès sont gardés dans le navigateur de l'appareil, comme pour Chocolat.

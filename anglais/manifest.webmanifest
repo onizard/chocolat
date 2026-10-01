@@ -1,0 +1,15 @@
+{
+  "name": "Nora's Spelling Bee",
+  "short_name": "Spelling Bee",
+  "description": "Flashcards d'anglais 6e : vocabulaire français ↔ anglais et orthographe.",
+  "lang": "fr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F7F9FD",
+  "theme_color": "#F2B415",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

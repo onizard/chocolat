@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F2B415">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<title>Nora's Spelling Bee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* Mise en page : une colonne étroite posée sur une feuille Seyès (marge rouge, lignes bleues),
+   les cartes sont des fiches bristol blanches, l'accent est le jaune miel du « Spelling Bee ». */
+:root{
+  --paper:#F7F9FD;
+  --line:rgba(70,110,190,.10);
+  --line-strong:rgba(70,110,190,.22);
+  --margin:rgba(214,84,96,.45);
+  --card:#FFFFFF;
+  --ink:#1D2333;
+  --ink-soft:#586079;
+  --border:#D5DBE7;
+  --honey:#F2B415;
+  --honey-ink:#7A5400;
+  --honey-pale:#FFF3CF;
+  --on-honey:#1D2333;
+  --fr:#2F5DB8;
+  --fr-pale:#E5ECFA;
+  --en:#B83A45;
+  --en-pale:#FBE6E8;
+  --ok:#23804F;
+  --ok-pale:#DDF2E5;
+  --bad:#C23B30;
+  --bad-pale:#FBE3E0;
+  --shadow:0 1px 0 rgba(29,35,51,.06), 0 6px 18px -8px rgba(29,35,51,.25);
+  --f-display:"Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#131722; --line:rgba(120,150,220,.07); --line-strong:rgba(120,150,220,.14);
+    --margin:rgba(230,110,120,.35); --card:#1D2230; --ink:#ECEFF6; --ink-soft:#A2AAC0;
+    --border:#30384A; --honey:#F5C33B; --honey-ink:#F5C33B; --honey-pale:#3A3115; --on-honey:#1D2333;
+    --fr:#8DB0F5; --fr-pale:#22304D; --en:#F2939B; --en-pale:#43242A;
+    --ok:#62CB8F; --ok-pale:#173B28; --bad:#F2857A; --bad-pale:#45201D;
+    --shadow:0 1px 0 rgba(0,0,0,.3), 0 8px 22px -10px rgba(0,0,0,.7);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#131722; --line:rgba(120,150,220,.07); --line-strong:rgba(120,150,220,.14);
+  --margin:rgba(230,110,120,.35); --card:#1D2230; --ink:#ECEFF6; --ink-soft:#A2AAC0;
+  --border:#30384A; --honey:#F5C33B; --honey-ink:#F5C33B; --honey-pale:#3A3115; --on-honey:#1D2333;
+  --fr:#8DB0F5; --fr-pale:#22304D; --en:#F2939B; --en-pale:#43242A;
+  --ok:#62CB8F; --ok-pale:#173B28; --bad:#F2857A; --bad-pale:#45201D;
+  --shadow:0 1px 0 rgba(0,0,0,.3), 0 8px 22px -10px rgba(0,0,0,.7);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(90deg, transparent 38px, var(--margin) 38px, var(--margin) 40px, transparent 40px),
+    repeating-linear-gradient(180deg, transparent 0 31px, var(--line-strong) 31px 32px),
+    repeating-linear-gradient(180deg, transparent 0 7px, var(--line) 7px 8px);
+  color:var(--ink);
+  font-family:var(--f-body);
+  font-size:17px;
+  line-height:1.5;
+  min-height:100vh;
+}
+.wrap{max-width:640px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
+@media (min-width:700px){ .wrap{padding-inline:24px} }
+h1,h2,h3{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:balance;line-height:1.15}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible,.chip:focus-visible{outline:3px solid var(--fr);outline-offset:2px}
+
+/* En-tête */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand svg{flex:none}
+.brand h1{font-size:1.6rem;font-weight:700;letter-spacing:-.01em}
+.brand p{margin:0;color:var(--ink-soft);font-size:.9rem}
+.iconbtn{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:8px 14px;font-size:.9rem;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+.iconbtn:hover{border-color:var(--ink-soft)}
+
+/* Blocs de réglages */
+.panel{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+.label{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.seg{display:grid;gap:8px;grid-template-columns:repeat(3,1fr)}
+.seg button{border:2px solid var(--border);background:transparent;border-radius:12px;padding:10px 8px;text-align:center;display:flex;flex-direction:column;gap:2px;align-items:center;min-width:0}
+.seg button b{font-family:var(--f-display);font-weight:600;font-size:1.05rem}
+.seg button .sub{font-size:.8rem;color:var(--ink-soft);line-height:1.25}
+.seg button[aria-pressed="true"]{border-color:var(--honey);background:var(--honey-pale)}
+.seg.small button{padding:8px 6px}
+.dir{display:inline-flex;align-items:center;gap:6px;font-weight:700}
+.tag{font-size:.7rem;font-weight:700;letter-spacing:.06em;padding:2px 7px;border-radius:6px}
+.tag.fr{background:var(--fr-pale);color:var(--fr)}
+.tag.en{background:var(--en-pale);color:var(--en)}
+
+.themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.chip{border:2px solid var(--border);background:transparent;border-radius:12px;padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:6px;min-width:0}
+.chip[aria-pressed="true"]{border-color:var(--honey);background:var(--honey-pale)}
+.chip .n{font-weight:700;line-height:1.2}
+.chip .meta{font-size:.78rem;color:var(--ink-soft);display:flex;justify-content:space-between;gap:6px;font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:99px;background:var(--border);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--honey);border-radius:99px;transition:width .4s}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.link{background:none;border:0;padding:0;color:var(--fr);font-weight:700;text-decoration:underline;text-underline-offset:3px;font-size:.9rem}
+
+.go{background:var(--honey);color:var(--on-honey);border:0;border-radius:14px;padding:16px 20px;font-family:var(--f-display);font-weight:600;font-size:1.25rem;box-shadow:0 3px 0 var(--honey-ink);width:100%}
+.go:active{transform:translateY(2px);box-shadow:0 1px 0 var(--honey-ink)}
+.go:disabled{opacity:.5;cursor:not-allowed}
+.ghost{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:12px 16px;font-weight:700}
+.ghost:hover{border-color:var(--ink-soft)}
+.hint{font-size:.85rem;color:var(--ink-soft);margin:0}
+
+/* Séance */
+.prog{display:flex;align-items:center;gap:12px}
+.prog .bar{flex:1;height:10px}
+.prog span{font-variant-numeric:tabular-nums;font-weight:700;font-size:.9rem;color:var(--ink-soft)}
+.stage{perspective:1400px}
+.flash{position:relative;min-height:260px;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,.7,.3,1);cursor:pointer}
+.flash.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:22px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;overflow:hidden}
+.face::before{content:"";position:absolute;left:0;right:0;top:0;height:8px}
+.face.fr::before{background:var(--fr)}
+.face.en::before{background:var(--en)}
+.face.back{transform:rotateY(180deg)}
+.word{font-family:var(--f-display);font-weight:600;font-size:clamp(1.6rem,6vw,2.4rem);line-height:1.2;overflow-wrap:anywhere;text-wrap:balance}
+.note{color:var(--ink-soft);font-size:.9rem;margin:0}
+.tap{position:absolute;bottom:12px;font-size:.8rem;color:var(--ink-soft)}
+.speak{border:1px solid var(--border);background:var(--card);border-radius:999px;width:44px;height:44px;display:inline-grid;place-items:center;color:var(--en)}
+.speak:hover{border-color:var(--en)}
+.prompt{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:22px 20px;display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;position:relative;overflow:hidden}
+.prompt::before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:var(--fr)}
+.prompt.en::before{background:var(--en)}
+.prompt.dict::before{background:var(--honey)}
+.answer{display:flex;flex-direction:column;gap:10px}
+.answer input{width:100%;font-family:var(--f-body);font-size:1.4rem;padding:14px 16px;border-radius:14px;border:2px solid var(--border);background:var(--card);color:var(--ink);text-align:center;letter-spacing:.02em}
+.answer input:focus{border-color:var(--fr);outline:none}
+.answer input.ok{border-color:var(--ok);background:var(--ok-pale)}
+.answer input.bad{border-color:var(--bad);background:var(--bad-pale)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btns.one{grid-template-columns:1fr}
+.b-ok{background:var(--ok);color:var(--card);border:0;border-radius:14px;padding:14px;font-weight:700;font-size:1.05rem}
+.b-bad{background:var(--bad);color:var(--card);border:0;border-radius:14px;padding:14px;font-weight:700;font-size:1.05rem}
+.feedback{border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.feedback.ok{background:var(--ok-pale);color:var(--ink)}
+.feedback.bad{background:var(--bad-pale);color:var(--ink)}
+.feedback h3{font-size:1.15rem}
+.feedback.ok h3{color:var(--ok)}
+.feedback.bad h3{color:var(--bad)}
+.spell{font-family:var(--f-body);font-size:1.35rem;letter-spacing:.06em;font-weight:700;overflow-wrap:anywhere}
+.spell .x{background:var(--bad);color:var(--card);border-radius:4px;padding:0 2px}
+.spell .g{background:var(--ok);color:var(--card);border-radius:4px;padding:0 2px}
+.spell .gap{display:inline-block;min-width:.6em;border-bottom:3px solid var(--ok)}
+.spell s{text-decoration-thickness:2px}
+.small{font-size:.85rem;color:var(--ink-soft)}
+.dictbtn{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.big-listen{background:var(--honey);color:var(--on-honey);border:0;border-radius:999px;padding:14px 26px;font-family:var(--f-display);font-weight:600;font-size:1.2rem;display:inline-flex;gap:10px;align-items:center;box-shadow:0 3px 0 var(--honey-ink)}
+
+/* Résultats */
+.score{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.score b{font-family:var(--f-display);font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.mist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.mist li{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--border);align-items:center}
+.mist li span{min-width:0;overflow-wrap:anywhere}
+.mist .e{font-weight:700;color:var(--en)}
+.mist .f{color:var(--fr)}
+
+/* Liste */
+.list h2{font-size:1.25rem;margin-bottom:6px}
+.tbl{width:100%;border-collapse:collapse;font-size:.95rem}
+.tbl td{padding:8px 6px;border-top:1px solid var(--border);vertical-align:middle}
+.tbl td.f{color:var(--ink-soft);width:45%}
+.tbl td.e{font-weight:700}
+.tbl td.s{width:36px;text-align:right}
+.tbl .speak{width:32px;height:32px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;background:var(--border);vertical-align:middle}
+.dot.l1,.dot.l2{background:var(--honey)}
+.dot.l3,.dot.l4,.dot.l5{background:var(--ok)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--ink-soft)}
+.danger{color:var(--bad);border-color:var(--bad-pale)}
+footer{font-size:.8rem;color:var(--ink-soft);text-align:center}
+
+@media (max-width:420px){
+  .seg button .sub{display:none}
+  .brand h1{font-size:1.35rem}
+}
+@media (prefers-reduced-motion: reduce){
+  .flash{transition:none}
+  .bar i{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header class="top">
+    <div class="brand">
+      <svg width="46" height="46" viewBox="0 0 64 64" aria-hidden="true">
+        <ellipse cx="22" cy="20" rx="11" ry="8" fill="var(--fr-pale)" stroke="var(--fr)" stroke-width="2" transform="rotate(-25 22 20)"/>
+        <ellipse cx="40" cy="18" rx="11" ry="8" fill="var(--fr-pale)" stroke="var(--fr)" stroke-width="2" transform="rotate(25 40 18)"/>
+        <ellipse cx="32" cy="38" rx="18" ry="15" fill="var(--honey)"/>
+        <path d="M24 25.5v25M32 23v30M40 25.5v25" stroke="var(--ink)" stroke-width="4.5"/>
+        <circle cx="47" cy="34" r="2.3" fill="var(--ink)"/>
+      </svg>
+      <div>
+        <h1>Nora's Spelling Bee</h1>
+        <p>Anglais 6e · vocabulaire du cahier</p>
+      </div>
+    </div>
+    <button class="iconbtn" id="homeBtn" hidden>Accueil</button>
+  </header>
+  <main id="view"></main>
+  <footer>Les progrès sont gardés sur cet appareil.</footer>
+</div>
+
+<script>
+/* ===== Vocabulaire =====
+   Une ligne = français | anglais | variantes acceptées (séparées par ;) | remarque
+   Les articles (a, an, the, to) sont facultatifs quand on écrit, mais s'ils sont écrits ils doivent être justes. */
+const THEMES = [
+{id:'classe', nom:'En classe', sous:'Consignes et phrases du cours', data:`
+faire l'appel | to take the register | to take a register
+souligner | to underline
+entourer | to circle
+surligner | to highlight
+distribuer | to hand out
+poser (quelque chose) | to put down
+jeter | to throw
+saluer | to greet
+suivre | to follow
+épeler | to spell
+Qui est absent aujourd'hui ? | Who is absent today?
+absent (qui manque) | missing
+Personne n'est absent aujourd'hui. | Nobody is missing today.
+il y a (+ pluriel) | there are
+beaucoup de, plusieurs | many
+des élèves | pupils | students
+Qui peut m'aider, s'il vous plaît ? | Who can help me, please?
+Comment dit-on … en anglais ? | How do you say ... in English? | | « English » prend toujours une majuscule.
+Que veut dire … ? | What does ... mean?
+Peux-tu épeler … ? | Can you spell ...?
+le contraire | the opposite
+le pluriel | the plural
+les devoirs | homework | | Pas de « s » : homework est invariable.
+Quelle est la date aujourd'hui ? | What is the date today?
+la dernière leçon | the last lesson
+une virgule | a comma
+une majuscule | a capital letter
+facile | easy
+comme (facile comme ABC) | as
+un mot transparent | a transparent word
+un concours d'orthographe | a spelling bee
+`},
+{id:'saluer', nom:'Se saluer', sous:'Greetings', data:`
+bonjour (le matin) | good morning
+bonjour (l'après-midi) | good afternoon
+bonsoir | good evening
+bonjour, salut | hello | hi
+Comment vas-tu aujourd'hui ? | How are you today?
+Nous sommes contents de te voir ! | We are happy to see you!
+Dis bonjour à la classe ! | Say hello to the class!
+fier, fière | proud
+`},
+{id:'meteo', nom:'La météo', sous:'What is the weather like?', data:`
+la météo, le temps | the weather
+Quel temps fait-il aujourd'hui ? | What is the weather like today?
+ensoleillé | sunny
+nuageux | cloudy
+venteux (il y a du vent) | windy
+pluvieux | rainy
+neigeux (il neige) | snowy
+orageux | stormy
+froid | cold
+doux, tiède | warm
+chaud | hot
+le soleil | the sun
+la lune | the moon
+une goutte de pluie | a raindrop
+des gouttes de pluie | raindrops
+un arc-en-ciel | a rainbow
+le tonnerre | thunder
+`},
+{id:'emotions', nom:'Les émotions', sous:'How are you today? I feel…', data:`
+nerveux, stressé | nervous
+perdu, qui ne comprend pas | confused
+fatigué | tired
+qui a sommeil | sleepy
+amoureux | in love
+malade | sick | ill
+bête, idiot | silly
+heureux, content | happy
+en colère | angry
+triste | sad
+fier, fière | proud
+surexcité, très impatient | excited
+Je me sens… | I feel ...
+`},
+{id:'jours', nom:'Jours & saisons', sous:'Days of the week', data:`
+lundi | Monday | | Le jour de la lune (the moon).
+mardi | Tuesday | | Le jour de Tiw, un dieu germanique.
+mercredi | Wednesday | | Le jour de Woden. Attention au « d » muet : Wed-nes-day.
+jeudi | Thursday | | Le jour de Thor, dieu du tonnerre.
+vendredi | Friday | | Le jour de Frigg, déesse de l'amour.
+samedi | Saturday | | Le jour de Saturne.
+dimanche | Sunday | | Le jour du soleil (the sun).
+un jour | a day
+une semaine | a week
+aujourd'hui | today
+l'hiver | winter | | Les saisons ne prennent pas de majuscule.
+le printemps | spring
+l'été | summer
+l'automne | autumn | fall
+un dieu | a god
+une déesse | a goddess
+la sagesse | wisdom
+`},
+{id:'mois', nom:'Mois & anniversaire', sous:'Months of the year', data:`
+janvier | January
+février | February | | N'oublie pas le premier « r » : Feb-ru-ary.
+mars | March
+avril | April
+mai | May
+juin | June
+juillet | July
+août | August
+septembre | September
+octobre | October
+novembre | November
+décembre | December
+un mois | a month
+une année | a year
+un anniversaire | a birthday
+Quand est ton anniversaire ? | When is your birthday?
+Mon anniversaire est en mai. | My birthday is in May. | | « in » + le mois seul.
+Mon anniversaire est le 28 mai. | My birthday is on the 28th of May. | My birthday is on the twenty-eighth of May | « on the » + nombre ordinal + « of » + mois.
+`},
+{id:'nombres', nom:'Nombres 1 à 31', sous:'Cardinal numbers', data:`
+1 | one
+2 | two
+3 | three
+4 | four
+5 | five
+6 | six
+7 | seven
+8 | eight
+9 | nine
+10 | ten
+11 | eleven
+12 | twelve
+13 | thirteen
+14 | fourteen
+15 | fifteen
+16 | sixteen
+17 | seventeen
+18 | eighteen
+19 | nineteen
+20 | twenty
+21 | twenty-one
+22 | twenty-two
+23 | twenty-three
+24 | twenty-four
+25 | twenty-five
+26 | twenty-six
+27 | twenty-seven
+28 | twenty-eight
+29 | twenty-nine
+30 | thirty
+31 | thirty-one
+`},
+{id:'ordinaux', nom:'1er, 2e, 3e…', sous:'Ordinal numbers', data:`
+1er (premier) | first | | 1st
+2e (deuxième) | second | | 2nd
+3e (troisième) | third | | 3rd
+4e (quatrième) | fourth | | 4th
+5e (cinquième) | fifth | | 5th — five devient fif-th.
+6e (sixième) | sixth | | 6th
+7e (septième) | seventh | | 7th
+8e (huitième) | eighth | | 8th — un seul « t ».
+9e (neuvième) | ninth | | 9th — pas de « e ».
+10e (dixième) | tenth | | 10th
+11e (onzième) | eleventh | | 11th
+12e (douzième) | twelfth | | 12th — twelve devient twelf-th.
+13e (treizième) | thirteenth | | 13th
+14e (quatorzième) | fourteenth | | 14th
+15e (quinzième) | fifteenth | | 15th
+16e (seizième) | sixteenth | | 16th
+17e (dix-septième) | seventeenth | | 17th
+18e (dix-huitième) | eighteenth | | 18th
+19e (dix-neuvième) | nineteenth | | 19th
+20e (vingtième) | twentieth | | 20th — le « y » devient « ie ».
+21e (vingt et unième) | twenty-first | | 21st
+22e (vingt-deuxième) | twenty-second | | 22nd
+23e (vingt-troisième) | twenty-third | | 23rd
+24e (vingt-quatrième) | twenty-fourth | | 24th
+25e (vingt-cinquième) | twenty-fifth | | 25th
+26e (vingt-sixième) | twenty-sixth | | 26th
+27e (vingt-septième) | twenty-seventh | | 27th
+28e (vingt-huitième) | twenty-eighth | | 28th
+29e (vingt-neuvième) | twenty-ninth | | 29th
+30e (trentième) | thirtieth | | 30th
+31e (trente et unième) | thirty-first | | 31st
+`},
+{id:'couleurs', nom:'Les couleurs', sous:'Colours', data:`
+rouge | red
+violet | purple
+jaune | yellow
+noir | black | | Avec « ck » à la fin.
+gris | grey | gray
+blanc | white | | Avec un « h » muet : w-h-ite.
+vert | green
+orange | orange
+bleu | blue
+rose | pink
+marron | brown
+doré | golden | gold
+argenté | silver
+turquoise | turquoise
+bordeaux | burgundy
+une couleur | a colour | a color
+Ma couleur préférée est le rouge. | My favourite colour is red. | My favorite color is red
+`},
+{id:'fournitures', nom:'Fournitures', sous:'School supplies', data:`
+une trousse | a pencil case
+un bâton de colle | a glue stick
+des ciseaux | scissors | a pair of scissors
+un stylo | a pen
+des stylos | pens
+un taille-crayon | a pencil sharpener | a sharpener
+une gourde | a water bottle | a bottle
+un crayon à papier | a pencil
+une gomme | an eraser | a rubber | « an » devant une voyelle : an eraser.
+un surligneur | a highlighter
+des surligneurs | highlighters
+une règle | a ruler
+un cartable | a school bag | a schoolbag
+un livre | a book
+des livres | books
+une craie grasse, un crayon de cire | a crayon
+`},
+{id:'poemes', nom:'Animaux & poèmes', sous:'Crayon poem, colours', data:`
+un dinosaure | a dinosaur
+une souris | a mouse
+le fromage | cheese
+un chien | a dog
+une puce (l'insecte) | a flea
+une maison | a house
+une porte | a door
+une fenêtre | a window
+des fenêtres | windows
+un renard | a fox
+une grenouille | a frog
+un requin | a shark
+une chauve-souris | a bat
+un fantôme | a ghost
+une figue | a fig
+la barbe à papa | cotton candy | candy floss
+le chocolat | chocolate
+la gelée | jelly
+dessiner | to draw
+fou | crazy
+grand, gros | big
+grand (de taille) | tall
+petit | small
+amusant, le plaisir | fun
+quelque chose | something
+puis, ensuite | then
+`},
+{id:'mots', nom:'Petits mots utiles', sous:'New words', data:`
+jamais | never
+se souvenir | to remember
+oublier | to forget
+si | if
+peut-être | maybe
+combien | how many
+cependant | however
+l'ordre | order | the order
+une position | a position
+une course | a race | the race
+pourquoi | why
+Je ne sais pas pourquoi. | I don't know why. | I do not know why
+absurde | absurd
+un nombre cardinal | a cardinal number
+un nombre ordinal | an ordinal number
+`},
+{id:'transparents', nom:'Mots transparents', sous:'Presque comme en français', data:`
+une table | a table
+un bus | a bus
+un restaurant | a restaurant | | Comme en français : res-tau-rant.
+un lion | a lion
+un fruit | a fruit
+la jungle | the jungle
+un biscuit | a biscuit
+un zoo | a zoo
+l'océan | the ocean | | Pas d'accent en anglais.
+le théâtre | the theatre | the theater
+une banane | a banana
+un oignon | an onion
+un parapluie | an umbrella
+la soupe | soup
+un kangourou | a kangaroo
+un vélo, une bicyclette | a bicycle | a bike
+une salade | a salad
+une tomate | a tomato
+le shampooing | shampoo
+la limonade | lemonade
+le café | coffee
+un lézard | a lizard
+un entraîneur | a coach
+un sandwich | a sandwich
+un T-shirt | a T-shirt
+le pop-corn | popcorn
+une interview | an interview
+`},
+];
+
+const CARDS = [];
+for (const t of THEMES) {
+  t.cards = [];
+  for (const raw of t.data.split('\n')) {
+    if (!raw.trim()) continue;
+    const [fr, en, alt = '', note = ''] = raw.split('|').map(s => s.trim());
+    const c = { id: t.id + '|' + en, theme: t.id, fr, en, alt: alt ? alt.split(';').map(s => s.trim()).filter(Boolean) : [], note };
+    t.cards.push(c); CARDS.push(c);
+  }
+}
+const byId = Object.fromEntries(CARDS.map(c => [c.id, c]));
+
+/* ===== Mémoire locale ===== */
+const KEY = 'nora-spelling-bee-v1';
+let store = { prefs: { mode: 'cartes', dir: 'fr-en', len: 20, themes: ['classe', 'meteo', 'jours', 'mois'] }, boxes: {} };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.prefs) store = { ...store, ...s, prefs: { ...store.prefs, ...s.prefs } }; } catch (e) {}
+store.prefs.themes = store.prefs.themes.filter(id => THEMES.some(t => t.id === id));
+function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+const boxOf = id => (store.boxes[id] && store.boxes[id].b) || 0;
+function record(id, ok) {
+  const s = store.boxes[id] || { b: 0, ok: 0, ko: 0 };
+  if (ok) { s.b = Math.min(5, s.b + 1); s.ok++; } else { s.b = 0; s.ko++; }
+  s.t = Date.now();
+  store.boxes[id] = s; save();
+}
+const known = t => t.cards.filter(c => boxOf(c.id) >= 3).length;
+
+/* ===== Voix anglaise ===== */
+let voice = null;
+function pickVoice() {
+  if (!('speechSynthesis' in window)) return;
+  const vs = speechSynthesis.getVoices();
+  voice = vs.find(v => v.lang === 'en-GB') || vs.find(v => /^en[-_]GB/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
+}
+if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+const canSpeak = 'speechSynthesis' in window;
+function say(text, slow) {
+  if (!canSpeak) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/\.\.\./g, ', something,'));
+  u.lang = 'en-GB'; if (voice) u.voice = voice;
+  u.rate = slow ? 0.55 : 0.9;
+  speechSynthesis.speak(u);
+}
+const SPK = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+
+/* ===== Vérification de l'orthographe ===== */
+const ARTS = ['a', 'an', 'the', 'to'];
+function norm(s) {
+  return s.replace(/[’‘`]/g, "'").replace(/…/g, ' ').replace(/[.,!?;:"«»()]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function stripArt(s) {
+  const w = s.split(' ');
+  return (w.length > 1 && ARTS.includes(w[0].toLowerCase())) ? w.slice(1).join(' ') : s;
+}
+// Les mots qui portent une majuscule dans la réponse attendue (Monday, May, English, I…)
+// doivent l'avoir. Le premier mot d'une phrase peut s'écrire avec ou sans.
+function sameWords(typed, exp) {
+  const a = typed.split(' '), b = exp.split(' ');
+  if (a.length !== b.length) return { ok: false, caseOnly: false };
+  let caseIssue = false;
+  for (let i = 0; i < b.length; i++) {
+    if (a[i].toLowerCase() !== b[i].toLowerCase()) return { ok: false, caseOnly: false };
+    const strict = /[A-Z]/.test(b[i]) && !(i === 0 && b.length > 1);
+    if (strict && a[i] !== b[i]) caseIssue = true;
+  }
+  return { ok: !caseIssue, caseOnly: caseIssue };
+}
+function checkEn(input, card) {
+  const t = norm(input);
+  if (!t) return { ok: false, best: card.en };
+  let caseOnly = false;
+  for (const exp of [card.en, ...card.alt]) {
+    const e = norm(exp);
+    const tries = [[t, e], [t, stripArt(e)]];
+    if (stripArt(e) === e) tries.push([stripArt(t), e]);
+    for (const [x, y] of tries) {
+      const r = sameWords(x, y);
+      if (r.ok) return { ok: true, best: exp };
+      if (r.caseOnly) caseOnly = true;
+    }
+  }
+  // réponse la plus proche, pour montrer les lettres fautives
+  let best = card.en, bestD = Infinity;
+  for (const exp of [card.en, ...card.alt]) {
+    for (const y of [norm(exp), stripArt(norm(exp))]) {
+      const d = levDist(t.toLowerCase(), y.toLowerCase());
+      if (d < bestD) { bestD = d; best = y; }
+    }
+  }
+  return { ok: false, caseOnly, best };
+}
+const deaccent = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+function normFr(s) {
+  let x = deaccent(s.toLowerCase()).replace(/[’']/g, ' ').replace(/[.,!?;:"«»…]/g, ' ').replace(/\s+/g, ' ').trim();
+  x = x.replace(/^(le|la|les|l|un|une|des|du|de|se|s) /, '');
+  return x;
+}
+function checkFr(input, card) {
+  const t = normFr(input);
+  if (!t) return false;
+  const base = card.fr.replace(/\([^)]*\)/g, ' ');
+  const opts = new Set([normFr(card.fr), normFr(base)]);
+  for (const part of base.split(/,| \/ /)) opts.add(normFr(part));
+  return [...opts].some(o => o && o === t);
+}
+function lev(a, b) {
+  const m = a.length, n = b.length, d = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
+  for (let j = 1; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++)
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d;
+}
+function levDist(a, b) { const d = lev(a, b); return d[a.length][b.length]; }
+function align(a, b, ci) {
+  const A = ci ? a.toLowerCase() : a, B = ci ? b.toLowerCase() : b;
+  const d = lev(A, B), out = [];
+  let i = A.length, j = B.length;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && d[i][j] === d[i - 1][j - 1] + (A[i - 1] === B[j - 1] ? 0 : 1)) { out.unshift([a[i - 1], b[j - 1]]); i--; j--; }
+    else if (j > 0 && d[i][j] === d[i][j - 1] + 1) { out.unshift([null, b[j - 1]]); j--; }
+    else { out.unshift([a[i - 1], null]); i--; }
+  }
+  return out;
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function diffHtml(typed, expected, caseOnly) {
+  const pairs = align(typed, expected, !caseOnly);
+  const same = (x, y) => x !== null && y !== null && (caseOnly ? x === y : x.toLowerCase() === y.toLowerCase());
+  let mine = '', good = '';
+  for (const [x, y] of pairs) {
+    if (x !== null) mine += same(x, y) ? esc(x) : (x === ' ' ? '<span class="x">&nbsp;</span>' : `<span class="x">${esc(x)}</span>`);
+    if (x === null && y !== null) mine += '<span class="gap"></span>';
+    if (y !== null) good += same(x, y) ? esc(y) : (y === ' ' ? '<span class="g">&nbsp;</span>' : `<span class="g">${esc(y)}</span>`);
+  }
+  return { mine, good };
+}
+
+/* ===== Écrans ===== */
+const view = document.getElementById('view');
+const homeBtn = document.getElementById('homeBtn');
+homeBtn.onclick = () => { if (canSpeak) speechSynthesis.cancel(); home(); };
+let session = null;
+
+const MODES = [
+  { id: 'cartes', nom: 'Cartes', txt: 'Retourner et se tester' },
+  { id: 'ecrire', nom: 'Écrire', txt: 'Taper la traduction' },
+  { id: 'dictee', nom: 'Dictée', txt: 'Écouter et épeler' },
+];
+const DIRS = [
+  { id: 'fr-en', html: '<span class="dir"><span class="tag fr">FR</span>→<span class="tag en">EN</span></span>' },
+  { id: 'en-fr', html: '<span class="dir"><span class="tag en">EN</span>→<span class="tag fr">FR</span></span>' },
+  { id: 'mix', html: '<span class="dir">Les deux</span>' },
+];
+
+function home() {
+  session = null;
+  homeBtn.hidden = true;
+  const p = store.prefs;
+  const total = CARDS.filter(c => p.themes.includes(c.theme)).length;
+  view.innerHTML = `
+  <div class="wrap" style="padding:0">
+    <section class="panel">
+      <span class="label">Comment réviser ?</span>
+      <div class="seg" id="modes">${MODES.map(m => `<button type="button" id="mode-${m.id}" data-v="${m.id}" aria-pressed="${p.mode === m.id}"><b>${m.nom}</b><span class="sub">${m.txt}</span></button>`).join('')}</div>
+      <div id="dirBox" ${p.mode === 'dictee' ? 'hidden' : ''}>
+        <div class="seg small" id="dirs">${DIRS.map(d => `<button type="button" id="dir-${d.id}" data-v="${d.id}" aria-pressed="${p.dir === d.id}">${d.html}</button>`).join('')}</div>
+      </div>
+      <p class="hint" id="modeHint">${modeHint(p)}</p>
+    </section>
+
+    <section class="panel">
+      <div class="row"><span class="label">Quelles leçons ?</span>
+        <span class="row" style="gap:14px"><button class="link" id="all" type="button">Tout</button><button class="link" id="none" type="button">Rien</button></span></div>
+      <div class="themes" id="themes">${THEMES.map(t => {
+        const k = known(t), n = t.cards.length;
+        return `<button type="button" class="chip" id="th-${t.id}" data-v="${t.id}" aria-pressed="${p.themes.includes(t.id)}">
+          <span class="n">${esc(t.nom)}</span>
+          <span class="bar"><i style="width:${Math.round(k / n * 100)}%"></i></span>
+          <span class="meta"><span>${esc(t.sous)}</span><span>${k}/${n}</span></span></button>`;
+      }).join('')}</div>
+      <p class="hint">La barre jaune montre les mots sus au moins 3 fois de suite.</p>
+    </section>
+
+    <section class="panel">
+      <span class="label">Combien de mots ?</span>
+      <div class="seg small" id="lens">${[10, 20, 0].map(v => `<button type="button" id="len-${v}" data-v="${v}" aria-pressed="${p.len === v}"><b>${v || 'Tous'}</b></button>`).join('')}</div>
+    </section>
+
+    <button class="go" id="start" ${total ? '' : 'disabled'}>${total ? `C'est parti ! <small style="font-weight:500">(${p.len && p.len < total ? p.len : total} mots)</small>` : 'Choisis au moins une leçon'}</button>
+    <div class="row">
+      <button class="ghost" id="listBtn" type="button">Voir la liste des mots</button>
+    </div>
+  </div>`;
+  const pick = (sel, key, conv = v => v) => view.querySelectorAll(sel + ' button').forEach(b => b.onclick = () => { p[key] = conv(b.dataset.v); save(); home(); });
+  pick('#modes', 'mode'); pick('#dirs', 'dir'); pick('#lens', 'len', Number);
+  view.querySelectorAll('#themes .chip').forEach(b => b.onclick = () => {
+    const id = b.dataset.v;
+    p.themes = p.themes.includes(id) ? p.themes.filter(x => x !== id) : [...p.themes, id];
+    save(); home();
+    document.getElementById('th-' + id)?.focus();
+  });
+  view.querySelector('#all').onclick = () => { p.themes = THEMES.map(t => t.id); save(); home(); };
+  view.querySelector('#none').onclick = () => { p.themes = []; save(); home(); };
+  view.querySelector('#start').onclick = () => start();
+  view.querySelector('#listBtn').onclick = list;
+}
+function modeHint(p) {
+  if (p.mode === 'cartes') return 'Lis la carte, dis la réponse dans ta tête (ou à voix haute), puis retourne-la et sois honnête !';
+  if (p.mode === 'ecrire') return 'Tape la traduction. En anglais, chaque lettre compte, et les majuscules des jours et des mois aussi.';
+  return canSpeak ? 'Le mot anglais est lu à voix haute : écris-le sans faute, comme au Spelling Bee.' : 'La lecture à voix haute n\'est pas disponible sur ce navigateur. Essaie Chrome ou Safari.';
+}
+
+function start(onlyIds) {
+  const p = store.prefs;
+  let pool;
+  if (onlyIds) pool = onlyIds.map(id => byId[id]);
+  else {
+    pool = CARDS.filter(c => p.themes.includes(c.theme))
+      .map(c => ({ c, s: boxOf(c.id) * 10 + Math.random() * 12 }))
+      .sort((a, b) => a.s - b.s).map(x => x.c);
+    if (p.len) pool = pool.slice(0, p.len);
+  }
+  pool = shuffle(pool.slice());
+  session = {
+    queue: pool.map(c => ({ c, dir: p.mode === 'dictee' ? 'dict' : p.dir === 'mix' ? (Math.random() < .5 ? 'fr-en' : 'en-fr') : p.dir, retry: 0 })),
+    i: 0, n: pool.length, first: {}, mode: p.mode,
+  };
+  homeBtn.hidden = false;
+  step();
+}
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function answered(ok) {
+  const s = session, item = s.queue[s.i];
+  if (!(item.c.id in s.first)) { s.first[item.c.id] = ok; record(item.c.id, ok); }
+  if (!ok && item.retry < 2) {
+    const at = Math.min(s.queue.length, s.i + 4);
+    s.queue.splice(at, 0, { ...item, retry: item.retry + 1 });
+  }
+}
+function next() { session.i++; step(); }
+
+function progressHtml() {
+  const s = session, done = Object.keys(s.first).length;
+  return `<div class="prog"><span class="bar"><i style="width:${Math.round(done / s.n * 100)}%"></i></span><span>${done} / ${s.n}</span></div>`;
+}
+function sideHtml(lang, card) {
+  const isEn = lang === 'en';
+  const text = isEn ? card.en : card.fr;
+  return `<span class="tag ${lang}">${isEn ? 'ENGLISH' : 'FRANÇAIS'}</span>
+    <div class="word" ${isEn ? 'lang="en"' : ''}>${esc(text)}</div>
+    ${isEn && card.note ? `<p class="note">${esc(card.note)}</p>` : ''}
+    ${isEn && canSpeak ? `<button type="button" class="speak" data-say="1" aria-label="Écouter la prononciation">${SPK}</button>` : ''}`;
+}
+
+function step() {
+  const s = session;
+  if (s.i >= s.queue.length) return results();
+  const { c, dir } = s.queue[s.i];
+  const theme = THEMES.find(t => t.id === c.theme);
+  const retryTag = s.queue[s.i].retry ? ' · on réessaie' : '';
+  const ctx = `<p class="small" style="margin:0;text-align:center">${esc(theme.nom)}${retryTag}</p>`;
+
+  if (s.mode === 'cartes') {
+    const [front, back] = dir === 'fr-en' ? ['fr', 'en'] : ['en', 'fr'];
+    view.innerHTML = `<div class="wrap" style="padding:0">${progressHtml()}${ctx}
+      <div class="stage"><div class="flash" id="flash" tabindex="0" role="button" aria-label="Retourner la carte">
+        <div class="face ${front}">${sideHtml(front, c)}<span class="tap">Touche la carte pour la retourner</span></div>
+        <div class="face back ${back}">${sideHtml(back, c)}</div>
+      </div></div>
+      <div class="btns" id="judge" hidden>
+        <button class="b-bad" id="no" type="button">Je ne savais pas</button>
+        <button class="b-ok" id="yes" type="button">Je savais !</button>
+      </div>
+      <button class="ghost" id="flipBtn" type="button">Retourner la carte</button></div>`;
+    const flash = view.querySelector('#flash'), judge = view.querySelector('#judge'), flipBtn = view.querySelector('#flipBtn');
+    const flip = () => { flash.classList.toggle('flipped'); judge.hidden = false; flipBtn.hidden = true; if (flash.classList.contains('flipped') && back === 'en') say(c.en); };
+    flash.onclick = e => { if (e.target.closest('[data-say]')) { e.stopPropagation(); say(c.en); return; } flip(); };
+    flash.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); } };
+    flipBtn.onclick = flip;
+    view.querySelector('#yes').onclick = () => { answered(true); next(); };
+    view.querySelector('#no').onclick = () => { answered(false); next(); };
+    flipBtn.focus();
+    return;
+  }
+
+  // Écrire / Dictée
+  const target = dir === 'en-fr' ? 'fr' : 'en';
+  let promptHtml;
+  if (dir === 'dict') {
+    promptHtml = `<div class="prompt dict"><span class="tag en">DICTÉE</span>
+      <div class="dictbtn"><button class="big-listen" id="listen" type="button">${SPK} Écouter</button>
+      <button class="ghost" id="slow" type="button">Plus lentement</button></div>
+      <button class="link" id="clue" type="button">Indice : le sens en français</button>
+      <p class="note" id="clueTxt" hidden>${esc(c.fr)}</p></div>`;
+  } else {
+    const src = dir === 'fr-en' ? 'fr' : 'en';
+    promptHtml = `<div class="prompt ${src}">${sideHtml(src, c).replace(/<p class="note">.*?<\/p>/, '')}
+      <p class="small" style="margin:0">Écris-le en ${target === 'en' ? 'anglais' : 'français'}</p></div>`;
+  }
+  view.innerHTML = `<div class="wrap" style="padding:0">${progressHtml()}${ctx}${promptHtml}
+    <form class="answer" id="form" autocomplete="off">
+      <input id="ans" ${target === 'en' ? 'lang="en"' : ''} autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="${target === 'en' ? 'in English…' : 'en français…'}" aria-label="Ta réponse">
+      <div class="btns" id="actions"><button class="ghost" type="button" id="skip">Je ne sais pas</button><button class="go" type="submit" style="font-size:1.05rem;padding:12px">Vérifier</button></div>
+    </form>
+    <div id="fb"></div></div>`;
+  const input = view.querySelector('#ans'), form = view.querySelector('#form'), fb = view.querySelector('#fb');
+  if (dir === 'dict') {
+    view.querySelector('#listen').onclick = () => { say(c.en); input.focus(); };
+    view.querySelector('#slow').onclick = () => { say(c.en, true); input.focus(); };
+    view.querySelector('#clue').onclick = e => { view.querySelector('#clueTxt').hidden = false; e.target.hidden = true; input.focus(); };
+    setTimeout(() => say(c.en), 250);
+  } else {
+    const sp = view.querySelector('.prompt [data-say]');
+    if (sp) sp.onclick = () => { say(c.en); input.focus(); };
+  }
+  input.focus();
+  let done = false;
+  const finish = (ok, html) => {
+    done = true;
+    input.readOnly = true;
+    input.classList.add(ok ? 'ok' : 'bad');
+    fb.innerHTML = html;
+    view.querySelector('#actions').outerHTML = `<div class="btns one"><button class="go" type="submit" id="nextBtn" style="font-size:1.05rem;padding:12px">Suivant →</button></div>`;
+    view.querySelector('#nextBtn').focus();
+    const sp = fb.querySelector('[data-say]'); if (sp) sp.onclick = () => say(c.en);
+    const over = fb.querySelector('#override');
+    if (over) over.onclick = () => { session.first[c.id] = true; store.boxes[c.id] && (store.boxes[c.id].ko--, store.boxes[c.id].b = 0); record(c.id, true);
+      // retire la répétition prévue
+      const k = session.queue.findIndex((q, idx) => idx > session.i && q.c.id === c.id); if (k > -1) session.queue.splice(k, 1);
+      next(); };
+  };
+  view.querySelector('#skip').onclick = () => {
+    answered(false);
+    finish(false, `<div class="feedback bad"><h3>Voici la réponse</h3>
+      <div class="spell" ${target === 'en' ? 'lang="en"' : ''}>${esc(target === 'en' ? c.en : c.fr)}</div>
+      ${c.note && target === 'en' ? `<p class="note">${esc(c.note)}</p>` : ''}
+      ${target === 'en' && canSpeak ? `<div><button type="button" class="speak" data-say="1" aria-label="Écouter">${SPK}</button></div>` : ''}
+      <p class="small" style="margin:0">Ce mot reviendra un peu plus loin.</p></div>`);
+  };
+  form.onsubmit = e => {
+    e.preventDefault();
+    if (done) return next();
+    const val = input.value;
+    if (!val.trim()) { input.focus(); return; }
+    if (target === 'fr') {
+      const ok = checkFr(val, c);
+      answered(ok);
+      finish(ok, ok
+        ? `<div class="feedback ok"><h3>Bravo !</h3><div class="small">${esc(c.fr)}</div></div>`
+        : `<div class="feedback bad"><h3>Pas tout à fait</h3>
+            <div class="small">On attendait :</div><div class="spell">${esc(c.fr)}</div>
+            <div><button class="link" type="button" id="override">J'avais trouvé, c'est juste dit autrement</button></div></div>`);
+      return;
+    }
+    const r = checkEn(val, c);
+    answered(r.ok);
+    if (r.ok) {
+      finish(true, `<div class="feedback ok"><h3>${['Perfect!', 'Well done!', 'Great!', 'Brilliant!'][Math.floor(Math.random() * 4)]}</h3>
+        <div class="spell" lang="en">${esc(c.en)}</div>${c.note ? `<p class="note">${esc(c.note)}</p>` : ''}
+        ${dir !== 'dict' ? '' : `<div class="small">${esc(c.fr)}</div>`}</div>`);
+      say(c.en);
+    } else {
+      const typed = norm(val);
+      const close = r.caseOnly || levDist(typed.toLowerCase(), r.best.toLowerCase()) <= Math.max(2, Math.floor(r.best.length / 3));
+      const d = diffHtml(typed, r.best, r.caseOnly);
+      finish(false, `<div class="feedback bad"><h3>${r.caseOnly ? 'Attention à la majuscule !' : close ? 'Presque… regarde bien les lettres' : 'Pas tout à fait'}</h3>
+        ${close ? `<div class="small">Tu as écrit :</div><div class="spell" lang="en">${d.mine}</div>
+        <div class="small">La bonne orthographe :</div><div class="spell" lang="en">${d.good}</div>`
+        : `<div class="small">La bonne réponse :</div><div class="spell" lang="en">${esc(c.en)}</div>`}
+        ${c.note ? `<p class="note">${esc(c.note)}</p>` : ''}
+        ${dir === 'dict' ? `<div class="small">Sens : ${esc(c.fr)}</div>` : ''}
+        ${canSpeak ? `<div><button type="button" class="speak" data-say="1" aria-label="Écouter">${SPK}</button></div>` : ''}
+        <p class="small" style="margin:0">Ce mot reviendra un peu plus loin.</p></div>`);
+    }
+  };
+}
+
+function results() {
+  const s = session;
+  const ids = Object.keys(s.first), good = ids.filter(id => s.first[id]).length;
+  const wrong = ids.filter(id => !s.first[id]);
+  const pct = ids.length ? good / ids.length : 0;
+  const msg = pct === 1 ? 'Un sans-faute, bravo Nora !' : pct >= .8 ? 'Très bien, encore un petit effort.' : pct >= .5 ? 'C\'est en bonne voie. On revoit les erreurs ?' : 'On s\'accroche : revois les erreurs, ça va venir.';
+  view.innerHTML = `<div class="wrap" style="padding:0">
+    <section class="panel">
+      <span class="label">Résultat du premier coup</span>
+      <div class="score"><b>${good}/${ids.length}</b><span>${msg}</span></div>
+      <span class="bar" style="height:10px"><i style="width:${Math.round(pct * 100)}%"></i></span>
+    </section>
+    ${wrong.length ? `<section class="panel"><span class="label">À revoir (${wrong.length})</span>
+      <ul class="mist">${wrong.map(id => { const c = byId[id]; return `<li><span class="f">${esc(c.fr)}</span><span aria-hidden="true">→</span><span class="e" lang="en">${esc(c.en)}</span></li>`; }).join('')}</ul></section>` : ''}
+    ${wrong.length ? `<button class="go" id="again">Revoir mes ${wrong.length} erreur${wrong.length > 1 ? 's' : ''}</button>` : ''}
+    <div class="btns"><button class="ghost" id="new" type="button">Nouvelle série</button><button class="ghost" id="back" type="button">Accueil</button></div>
+  </div>`;
+  if (wrong.length) view.querySelector('#again').onclick = () => start(wrong);
+  view.querySelector('#new').onclick = () => start();
+  view.querySelector('#back').onclick = home;
+}
+
+function list() {
+  homeBtn.hidden = false;
+  view.innerHTML = `<div class="wrap" style="padding:0">
+    <div class="legend"><span><i class="dot"></i>pas encore su</span><span><i class="dot l1"></i>en cours</span><span><i class="dot l3"></i>su</span></div>
+    ${THEMES.map(t => `<section class="panel list"><h2>${esc(t.nom)} <span class="small">· ${esc(t.sous)}</span></h2>
+      <div style="overflow-x:auto"><table class="tbl"><tbody>${t.cards.map(c => `<tr><td class="f"><i class="dot l${boxOf(c.id)}"></i>${esc(c.fr)}</td><td class="e" lang="en">${esc(c.en)}</td><td class="s">${canSpeak ? `<button type="button" class="speak" data-en="${esc(c.en)}" aria-label="Écouter ${esc(c.en)}">${SPK}</button>` : ''}</td></tr>`).join('')}</tbody></table></div></section>`).join('')}
+    <section class="panel"><span class="label">Repartir de zéro</span>
+      <p class="hint">Efface les progrès enregistrés sur cet appareil.</p>
+      <div class="row"><button class="ghost danger" id="reset" type="button">Effacer les progrès</button></div></section>
+  </div>`;
+  view.querySelectorAll('[data-en]').forEach(b => b.onclick = () => say(b.dataset.en));
+  const reset = view.querySelector('#reset');
+  reset.onclick = () => {
+    if (reset.dataset.armed) { store.boxes = {}; save(); list(); return; }
+    reset.dataset.armed = '1'; reset.textContent = 'Sûr ? Touche encore pour effacer';
+  };
+  window.scrollTo(0, 0);
+}
+
+home();
+</script>
+</body>
+</html>
