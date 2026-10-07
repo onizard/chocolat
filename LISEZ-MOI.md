@@ -100,3 +100,10 @@ français ↔ anglais construites à partir du cahier d'anglais de 6e (classe, m
 - Pour ajouter des mots : dans `anglais/index.html`, chaque leçon contient des lignes
   `français | anglais | variantes acceptées | remarque`. Ajoute simplement une ligne.
 - Les progrès sont gardés dans le navigateur de l'appareil, comme pour Chocolat.
+
+### Version Mac (.dmg)
+
+`python3 anglais/mac/build_dmg.py` fabrique `anglais/mac/dist/Norah Spelling Bee.dmg`
+(il faut `genisoimage` sous Linux, ou `hdiutil` sur Mac). L'app copie la page dans
+`~/Library/Application Support/Norah Spelling Bee/` et l'ouvre dans le navigateur,
+polices comprises : pas besoin d'Internet. Relance le script après chaque ajout de mots.
