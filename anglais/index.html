@@ -549,19 +549,36 @@ function record(id, ok) {
 const known = t => t.cards.filter(c => boxOf(c.id) >= 3).length;
 
 /* ===== Voix anglaise ===== */
-// On utilise la voix réglée par défaut sur l'appareil (Réglages Système → Accessibilité
-// → Contenu énoncé sur Mac), sans proposer d'autre choix.
+// Safari (Mac, iPhone) : on indique seulement la langue anglaise, sans imposer de voix.
+// Le système lit alors avec la voix choisie pour l'anglais dans ses réglages
+// (Contenu énoncé), par exemple Ava (Premium), même si la voix générale est française.
+// Autres navigateurs : ils ne connaissent pas ce réglage, on prend la meilleure voix anglaise.
+const SAFARI = /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|CriOS|Edg|Firefox|FxiOS|OPR/.test(navigator.userAgent);
+const LANGUE = 'en-US';
 let voice = null;
+const VOIX_A_EVITER = /\b(albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|fred|junior|ralph|kathy|eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley)\b/i;
+function noteVoix(v) {
+  const n = v.name.toLowerCase();
+  if (VOIX_A_EVITER.test(n)) return -100;
+  let s = 0;
+  if (/premium|enhanced|natural|neural|amélior/i.test(n)) s += 30;
+  const i = ['ava', 'samantha', 'serena', 'kate', 'google us english', 'google uk english female', 'aria', 'jenny', 'libby', 'sonia'].findIndex(x => n.includes(x));
+  if (i > -1) s += 20 - i;
+  if (/^en[-_]us/i.test(v.lang)) s += 2;
+  return s;
+}
 function pickVoice() {
-  if (!('speechSynthesis' in window)) return;
-  voice = speechSynthesis.getVoices().find(v => v.default) || null;
+  if (!('speechSynthesis' in window) || SAFARI) return;
+  const vs = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang));
+  voice = vs.sort((a, b) => noteVoix(b) - noteVoix(a))[0] || null;
 }
 const canSpeak = 'speechSynthesis' in window;
 function say(text, slow) {
   if (!canSpeak) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text.replace(/\.\.\./g, ', something,'));
-  if (voice) { u.voice = voice; u.lang = voice.lang; }
+  u.lang = voice ? voice.lang : LANGUE;
+  if (voice) u.voice = voice;
   u.rate = slow ? 0.7 : 0.92;
   speechSynthesis.speak(u);
 }

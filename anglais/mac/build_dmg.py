@@ -23,7 +23,7 @@ import urllib.request
 ICI = os.path.dirname(os.path.abspath(__file__))
 SITE = os.path.dirname(ICI)
 NOM = "Norah Spelling Bee"
-VERSION = "1.2"
+VERSION = "1.3"
 POLICES = ("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700"
            "&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap")
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 "
@@ -34,7 +34,8 @@ SRC="$(cd "$(dirname "$0")/../Resources/site" && pwd)"
 DEST="$HOME/Library/Application Support/{NOM}"
 mkdir -p "$DEST"
 cp -f "$SRC"/* "$DEST"/
-open "$DEST/index.html"
+# Safari lit l'anglais avec la voix choisie pour l'anglais dans les réglages du Mac
+open -a Safari "$DEST/index.html" 2>/dev/null || open "$DEST/index.html"
 """
 
 INFO_PLIST = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -61,7 +62,7 @@ LISEZ_MOI = f"""{NOM} — installation sur Mac
 
 1. Fais glisser « {NOM} » sur le dossier « Applications ».
 2. Ouvre l'application depuis le dossier Applications (ou le Launchpad).
-   Les flashcards s'ouvrent dans ton navigateur (Safari, Chrome…).
+   Les flashcards s'ouvrent dans Safari.
 
 Si macOS refuse d'ouvrir l'application la première fois
 (« impossible de vérifier le développeur ») :
@@ -73,8 +74,10 @@ C'est normal : l'application n'est pas signée par Apple (il faut un compte
 développeur payant pour ça). Elle ne fait que copier la page des flashcards
 dans ~/Library/Application Support/{NOM}/ et l'ouvrir.
 
-Les progrès de Norah sont gardés par le navigateur. Utilise toujours le même
-navigateur pour les retrouver.
+La voix qui lit les mots est celle choisie pour l'anglais dans
+Réglages Système → Accessibilité → Contenu énoncé (par exemple Ava Premium).
+
+Les progrès de Norah sont gardés par Safari.
 """
 
 
