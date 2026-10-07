@@ -549,35 +549,34 @@ function record(id, ok) {
 const known = t => t.cards.filter(c => boxOf(c.id) >= 3).length;
 
 /* ===== Voix anglaise ===== */
-// Safari (Mac, iPhone) : on indique seulement la langue anglaise, sans imposer de voix.
-// Le système lit alors avec la voix choisie pour l'anglais dans ses réglages
-// (Contenu énoncé), par exemple Ava (Premium), même si la voix générale est française.
-// Autres navigateurs : ils ne connaissent pas ce réglage, on prend la meilleure voix anglaise.
-const SAFARI = /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|CriOS|Edg|Firefox|FxiOS|OPR/.test(navigator.userAgent);
-const LANGUE = 'en-US';
+// On choisit explicitement une voix anglaise : Ava d'abord (Premium, puis améliorée,
+// puis standard), sinon une autre voix féminine claire. Les voix gadget sont écartées.
+// (Indiquer seulement la langue ne suffit pas : Safari prenait alors une voix française.)
 let voice = null;
 const VOIX_A_EVITER = /\b(albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|fred|junior|ralph|kathy|eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley)\b/i;
+const PREFEREES = ['ava', 'samantha', 'allison', 'susan', 'zoe', 'serena', 'kate', 'stephanie', 'google us english', 'google uk english female', 'aria', 'jenny', 'libby', 'sonia'];
 function noteVoix(v) {
   const n = v.name.toLowerCase();
   if (VOIX_A_EVITER.test(n)) return -100;
   let s = 0;
-  if (/premium|enhanced|natural|neural|amélior/i.test(n)) s += 30;
-  const i = ['ava', 'samantha', 'serena', 'kate', 'google us english', 'google uk english female', 'aria', 'jenny', 'libby', 'sonia'].findIndex(x => n.includes(x));
-  if (i > -1) s += 20 - i;
-  if (/^en[-_]us/i.test(v.lang)) s += 2;
+  const i = PREFEREES.findIndex(x => n === x || n.startsWith(x + ' ') || n.startsWith(x + '(') || n.includes(x + ' ('));
+  if (i > -1) s += 100 - i * 5;
+  if (/premium/i.test(n)) s += 3; else if (/enhanced|amélior|natural|neural/i.test(n)) s += 2;
+  if (/^en[-_]us/i.test(v.lang)) s += 1;
   return s;
 }
 function pickVoice() {
-  if (!('speechSynthesis' in window) || SAFARI) return;
-  const vs = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang));
+  if (!('speechSynthesis' in window)) return;
+  const vs = speechSynthesis.getVoices().filter(v => /^en[-_]/i.test(v.lang));
   voice = vs.sort((a, b) => noteVoix(b) - noteVoix(a))[0] || null;
 }
 const canSpeak = 'speechSynthesis' in window;
 function say(text, slow) {
   if (!canSpeak) return;
+  if (!voice) pickVoice();
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text.replace(/\.\.\./g, ', something,'));
-  u.lang = voice ? voice.lang : LANGUE;
+  u.lang = voice ? voice.lang : 'en-US';
   if (voice) u.voice = voice;
   u.rate = slow ? 0.7 : 0.92;
   speechSynthesis.speak(u);
@@ -948,6 +947,7 @@ function list() {
     <section class="panel"><span class="label">Repartir de zéro</span>
       <p class="hint">Efface les progrès enregistrés sur cet appareil.</p>
       <div class="row"><button class="ghost danger" id="reset" type="button">Effacer les progrès</button></div></section>
+    ${canSpeak ? `<p class="hint">Voix anglaise utilisée : ${voice ? esc(voice.name + ' · ' + voice.lang) : 'voix anglaise du système'}</p>` : ''}
   </div>`;
   view.querySelectorAll('[data-en]').forEach(b => b.onclick = () => say(b.dataset.en));
   const reset = view.querySelector('#reset');

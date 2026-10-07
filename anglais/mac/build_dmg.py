@@ -23,7 +23,7 @@ import urllib.request
 ICI = os.path.dirname(os.path.abspath(__file__))
 SITE = os.path.dirname(ICI)
 NOM = "Norah Spelling Bee"
-VERSION = "1.3"
+VERSION = "1.4"
 POLICES = ("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700"
            "&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap")
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 "
@@ -74,8 +74,7 @@ C'est normal : l'application n'est pas signée par Apple (il faut un compte
 développeur payant pour ça). Elle ne fait que copier la page des flashcards
 dans ~/Library/Application Support/{NOM}/ et l'ouvrir.
 
-La voix qui lit les mots est celle choisie pour l'anglais dans
-Réglages Système → Accessibilité → Contenu énoncé (par exemple Ava Premium).
+Les mots anglais sont lus par la voix Ava (Premium si elle est installée).
 
 Les progrès de Norah sont gardés par Safari.
 """
