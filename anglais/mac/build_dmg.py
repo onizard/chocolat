@@ -23,7 +23,7 @@ import urllib.request
 ICI = os.path.dirname(os.path.abspath(__file__))
 SITE = os.path.dirname(ICI)
 NOM = "Norah Spelling Bee"
-VERSION = "1.1"
+VERSION = "1.2"
 POLICES = ("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700"
            "&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap")
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 "

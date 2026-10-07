@@ -186,8 +186,6 @@ button:focus-visible,input:focus-visible,a:focus-visible,.chip:focus-visible{out
 .dot.l1,.dot.l2{background:var(--honey)}
 .dot.l3,.dot.l4,.dot.l5{background:var(--ok)}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--ink-soft)}
-.voixrow{display:flex;gap:8px;flex-wrap:wrap}
-.voixrow select{flex:1 1 200px;min-width:0;font:inherit;padding:10px 12px;border-radius:12px;border:2px solid var(--border);background:var(--card);color:var(--ink)}
 .danger{color:var(--bad);border-color:var(--bad-pale)}
 footer{font-size:.8rem;color:var(--ink-soft);text-align:center}
 
@@ -551,52 +549,21 @@ function record(id, ok) {
 const known = t => t.cards.filter(c => boxOf(c.id) >= 3).length;
 
 /* ===== Voix anglaise ===== */
-// Sur Mac, la liste des voix anglaises contient des voix « gadget » ou anciennes
-// (Grandpa, Rocko, Fred, Bad News…) très graves et peu nettes : on les écarte,
-// et on préfère des voix féminines claires, britanniques d'abord.
-let voices = [], voice = null;
-const VOIX_A_EVITER = /\b(albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|fred|junior|ralph|kathy|eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley|daniel|arthur|oliver|george|ryan|thomas|guy|david|mark|james|alex|aaron|tom|nathan|evan|gordon|lee|rishi)\b/i;
-const VOIX_PREFEREES = ['serena', 'kate', 'stephanie', 'martha', 'libby', 'sonia', 'maisie', 'hazel', 'google uk english female', 'samantha', 'ava', 'allison', 'susan', 'zoe', 'nicky', 'karen', 'moira', 'tessa', 'aria', 'jenny', 'google us english'];
-function noteVoix(v) {
-  const n = v.name.toLowerCase();
-  if (VOIX_A_EVITER.test(n)) return -100;
-  let s = 0;
-  const i = VOIX_PREFEREES.findIndex(x => n.includes(x));
-  if (i > -1) s += 50 - i;
-  if (/premium|enhanced|natural|neural|amélior/i.test(n)) s += 30;
-  if (/female|femme/i.test(n)) s += 10;
-  if (/^en[-_]gb/i.test(v.lang)) s += 8; else if (/^en[-_]us/i.test(v.lang)) s += 4;
-  return s;
-}
+// On utilise la voix réglée par défaut sur l'appareil (Réglages Système → Accessibilité
+// → Contenu énoncé sur Mac), sans proposer d'autre choix.
+let voice = null;
 function pickVoice() {
   if (!('speechSynthesis' in window)) return;
-  voices = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang))
-    .sort((a, b) => noteVoix(b) - noteVoix(a) || a.name.localeCompare(b.name));
-  const choisie = store.prefs.voix && voices.find(v => v.voiceURI === store.prefs.voix);
-  voice = choisie || voices[0] || null;
-  const sel = document.getElementById('voix');
-  if (sel) sel.outerHTML = voixSelect();
-  brancherVoix();
+  voice = speechSynthesis.getVoices().find(v => v.default) || null;
 }
 const canSpeak = 'speechSynthesis' in window;
 function say(text, slow) {
   if (!canSpeak) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text.replace(/\.\.\./g, ', something,'));
-  u.lang = voice ? voice.lang : 'en-GB'; if (voice) u.voice = voice;
+  if (voice) { u.voice = voice; u.lang = voice.lang; }
   u.rate = slow ? 0.7 : 0.92;
-  u.pitch = 1.05;
   speechSynthesis.speak(u);
-}
-function voixSelect() {
-  if (!voices.length) return '<select id="voix" disabled><option>Voix par défaut</option></select>';
-  return `<select id="voix" aria-label="Voix anglaise">${voices.map(v => `<option value="${esc(v.voiceURI)}" ${voice && v.voiceURI === voice.voiceURI ? 'selected' : ''}>${esc(v.name)} · ${esc(v.lang)}</option>`).join('')}</select>`;
-}
-function brancherVoix() {
-  const sel = document.getElementById('voix');
-  if (sel) sel.onchange = () => { voice = voices.find(v => v.voiceURI === sel.value) || voice; store.prefs.voix = voice && voice.voiceURI; save(); say('Hello Norah! Wednesday, February, the twelfth.'); };
-  const t = document.getElementById('testVoix');
-  if (t) t.onclick = () => say('Hello Norah! Wednesday, February, the twelfth.');
 }
 const SPK = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
 
@@ -743,12 +710,6 @@ function home() {
       <div class="seg small" id="lens">${[10, 20, 0].map(v => `<button type="button" id="len-${v}" data-v="${v}" aria-pressed="${p.len === v}"><b>${v || 'Tous'}</b></button>`).join('')}</div>
     </section>
 
-    ${canSpeak ? `<section class="panel">
-      <span class="label">Voix anglaise</span>
-      <div class="voixrow">${voixSelect()}<button class="ghost" id="testVoix" type="button">Écouter</button></div>
-      <p class="hint">Si la voix est grave ou peu claire, choisis-en une autre dans la liste.</p>
-    </section>` : ''}
-
     <button class="go" id="start" ${total ? '' : 'disabled'}>${total ? `C'est parti ! <small style="font-weight:500">(${p.len && p.len < total ? p.len : total} mots)</small>` : 'Choisis au moins une leçon'}</button>
     <div class="row">
       <button class="ghost" id="listBtn" type="button">Voir la liste des mots</button>
@@ -766,7 +727,6 @@ function home() {
   view.querySelector('#none').onclick = () => { p.themes = []; save(); home(); };
   view.querySelector('#start').onclick = () => start();
   view.querySelector('#listBtn').onclick = list;
-  brancherVoix();
 }
 function modeHint(p) {
   if (p.mode === 'cartes') return 'Lis la carte, dis la réponse dans ta tête (ou à voix haute), puis retourne-la et sois honnête !';
