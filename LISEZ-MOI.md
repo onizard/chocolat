@@ -107,3 +107,10 @@ français ↔ anglais construites à partir du cahier d'anglais de 6e (classe, m
 (il faut `genisoimage` sous Linux, ou `hdiutil` sur Mac). L'app copie la page dans
 `~/Library/Application Support/Norah Spelling Bee/` et l'ouvre dans le navigateur,
 polices comprises : pas besoin d'Internet. Relance le script après chaque ajout de mots.
+
+### Cartes à imprimer (PDF)
+
+`NODE_PATH=$(npm root -g) node anglais/imprimer/build_pdf.js` fabrique
+`anglais/imprimer/dist/Flashcards Norah.pdf` : 12 cartes par feuille A4, français au recto,
+anglais au verso (impression recto verso, bord long, taille réelle). Le vocabulaire est lu
+dans `anglais/index.html`, donc les cartes suivent les mots du site.
